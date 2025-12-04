@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api
+Disallow: /login
+Disallow: /register
+Disallow: /user/
+Disallow: /checkout
+Disallow: /?*sort=
+Disallow: /?*filter=
+
+# Crawl delay to prevent server overload
+Crawl-delay: 1
+
+# Specific rules for Google
+User-agent: Googlebot
+Crawl-delay: 0.5
+Allow: /
+
+# Sitemap location
+Sitemap: https://farbetter.com/sitemap.xml

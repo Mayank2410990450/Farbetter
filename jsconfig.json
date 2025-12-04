@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "client/src/*"
+            ],
+            "@assets/*": [
+                "attached_assets/*"
+            ]
+        },
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "Node",
+        "jsx": "react-jsx"
+    },
+    "include": [
+        "client/src/**/*"
+    ]
+}
