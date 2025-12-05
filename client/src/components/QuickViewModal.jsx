@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,8 +26,10 @@ export default function QuickViewModal({ open, onOpenChange, product }) {
           <div className="md:w-1/2 space-y-4">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-2xl font-bold">{product.name}</h3>
-                <p className="text-sm text-muted-foreground">{product.tagline || product.brand}</p>
+                <DialogTitle className="text-2xl font-bold">{product.name}</DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground">
+                  {product.tagline || product.brand || "Product Details"}
+                </DialogDescription>
               </div>
               <DialogClose asChild>
                 <Button variant="ghost" size="icon" aria-label="Close quick view">

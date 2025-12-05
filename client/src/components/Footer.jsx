@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
-  
+
   const footerLinks = {
     shop: [
       { label: "All Products", href: "/shop" },
@@ -37,7 +37,7 @@ export default function Footer() {
   return (
     <footer className="bg-secondary dark:bg-slate-900 border-t border-primary/20">
       {/* Main Footer Content */}
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-8 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12 mb-12">
           {/* Brand Column */}
           <div className="col-span-1">
@@ -152,7 +152,7 @@ export default function Footer() {
           <p className="text-sm text-foreground/80 flex items-center justify-center md:justify-start gap-1">
             © {currentYear} Farbetter. All rights reserved. Made with <Heart className="h-4 w-4 text-red-500" /> for your health.
           </p>
-          
+
           <div className="flex flex-wrap gap-4 justify-center md:justify-end">
             {footerLinks.legal.map((link) => (
               <Link key={link.label} to={link.href}>

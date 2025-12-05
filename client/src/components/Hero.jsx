@@ -19,7 +19,7 @@ export default function Hero() {
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-        <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6" data-testid="text-hero-title">
+        <h1 className="font-serif text-3xl md:text-6xl lg:text-7xl font-bold text-white mb-6" data-testid="text-hero-title">
           All Crunch, No Junk
           {/* <span className="block text-primary-foreground"></span> */}
         </h1>

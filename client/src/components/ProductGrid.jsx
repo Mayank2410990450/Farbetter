@@ -5,7 +5,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { SlidersHorizontal } from "lucide-react";
 import {
   Select,
@@ -95,7 +95,7 @@ export default function ProductGrid({ products = [] }) {
         </aside>
 
         <div className="flex-1">
-          <div className="flex items-center justify-between mb-6 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
             <p className="text-muted-foreground">Showing {sortedProducts.length} products</p>
 
             <div className="flex items-center gap-2">
@@ -107,8 +107,15 @@ export default function ProductGrid({ products = [] }) {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-80">
-                  <h2 className="font-semibold text-lg mb-6">Filters</h2>
-                  <FilterContent />
+                  <SheetHeader>
+                    <SheetTitle>Filters</SheetTitle>
+                    <SheetDescription className="sr-only">
+                      Filter products by category and other options
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="mt-6">
+                    <FilterContent />
+                  </div>
                 </SheetContent>
               </Sheet>
 

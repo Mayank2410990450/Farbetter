@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import FarbetterLogo from "@assets/generated_images/Farbetter_logo.png";
 
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Link } from "react-router-dom";
 import ThemeToggle from "@/components/ThemeToggle";
 import ShoppingCartComponent from "@/components/ShoppingCart";
@@ -90,7 +90,26 @@ export default function Header({ cartCount = 0, wishlistCount = 0 }) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-80">
-                <nav className="flex flex-col gap-4 mt-8">
+                <SheetHeader>
+                  <SheetTitle className="text-left">Menu</SheetTitle>
+                  <SheetDescription className="sr-only">
+                    Navigation menu for mobile devices
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="px-4 py-4 mb-4">
+                  <div className="relative w-full">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="Search products..."
+                      className="pl-10 h-9 bg-muted/50 border-none focus-visible:ring-1"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onKeyDown={onSearchKey}
+                    />
+                  </div>
+                </div>
+                <nav className="flex flex-col gap-4">
                   <Link to="/">
                     <div className="text-base font-semibold hover-elevate active-elevate-2 px-4 py-2 rounded-md cursor-pointer" data-testid="link-mobile-home">
                       Home
@@ -131,7 +150,7 @@ export default function Header({ cartCount = 0, wishlistCount = 0 }) {
                 <img
                   src={FarbetterLogo}
                   alt="Farbetter"
-                  className="h-[10rem] w-auto object-contain transition-all dark:invert"
+                  className="h-12 md:h-16 w-auto object-contain transition-all dark:invert"
                 />
               </div>
             </Link>

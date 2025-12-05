@@ -1,5 +1,5 @@
 import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 export default function ReviewModal({ open, onOpenChange, review }) {
@@ -13,6 +13,9 @@ export default function ReviewModal({ open, onOpenChange, review }) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{reviewer}</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Review posted on {date}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">

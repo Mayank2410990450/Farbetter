@@ -40,17 +40,16 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps, curl, postman)
     if (!origin) return callback(null, true);
 
-    // const allowedOrigins = [
-    //   "http://localhost:5173",
-    //   "http://localhost:5000",
-    //   "https://farbetter.vercel.app",
-    //   "https://accounts.google.com", // Allow Google OAuth
-    //   process.env.CLIENT_URL // Dynamic production URL
-    // ];
-    const allowedOrigins = ['https://www.farbetterstore.com', 'https://farbetterstore.com'];
+   
+    const allowedOrigins = [
+      'https://www.farbetterstore.com',
+      'https://farbetterstore.com',
+      'http://localhost:5173',
+      'http://localhost:5000'
+    ];
 
 
-    
+
 
     if (allowedOrigins.includes(origin)) {
       callback(null, true);

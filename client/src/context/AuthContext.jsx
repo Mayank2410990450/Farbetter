@@ -12,62 +12,62 @@ import { useToast } from "@/hooks/use-toast";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);  
-  const [loading, setLoading] = useState(true);  
-  const [authLoading, setAuthLoading] = useState(false); 
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false);
   const [error, setError] = useState(null);
   const { toast } = useToast();
 
-useEffect(() => {
-  const fetchProfile = async () => {
-    const token = localStorage.getItem("token");
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = localStorage.getItem("token");
 
 
-    if (!token) {
+      if (!token) {
 
-      setUser(null);
-      setLoading(false);
-      return;
-    }
+        setUser(null);
+        setLoading(false);
+        return;
+      }
 
-    try {
-      const data = await getProfile();
-      setUser(data);
-      setLoading(false);
-    } catch (err) {
-      console.error("❌ AuthContext: Profile fetch failed:", err.message);
-      setUser(null);
-      localStorage.removeItem("token");
-      setLoading(false);
-    }
-  };
+      try {
+        const data = await getProfile();
+        setUser(data);
+        setLoading(false);
+      } catch (err) {
+        console.error("❌ AuthContext: Profile fetch failed:", err.message);
+        setUser(null);
+        localStorage.removeItem("token");
+        setLoading(false);
+      }
+    };
 
-  // Listen for token updates from OAuth redirect
-  const handleTokenUpdate = () => {
-    const tokenCheck = localStorage.getItem("authToken");
-    fetchProfile();
-  };
-
-  // Initial fetch on mount
-
-  fetchProfile();
-  
-  // Listen for custom token-updated event (OAuth redirect)
-  window.addEventListener('token-updated', handleTokenUpdate);
-  
-  // Also listen for storage changes (other tabs)
-  const handleStorageChange = (e) => {
-    if (e.key === 'token' && e.newValue) {
+    // Listen for token updates from OAuth redirect
+    const handleTokenUpdate = () => {
+      const tokenCheck = localStorage.getItem("authToken");
       fetchProfile();
-    }
-  };
-  window.addEventListener('storage', handleStorageChange);
-  
-  return () => {
-    window.removeEventListener('token-updated', handleTokenUpdate);
-    window.removeEventListener('storage', handleStorageChange);
-  };
-}, []);
+    };
+
+    // Initial fetch on mount
+
+    fetchProfile();
+
+    // Listen for custom token-updated event (OAuth redirect)
+    window.addEventListener('token-updated', handleTokenUpdate);
+
+    // Also listen for storage changes (other tabs)
+    const handleStorageChange = (e) => {
+      if (e.key === 'token' && e.newValue) {
+        fetchProfile();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('token-updated', handleTokenUpdate);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
 
   const login = async (email, password) => {
@@ -125,10 +125,9 @@ useEffect(() => {
       setUser(profile);
       return { success: true };
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
-      return { success: false };
-    } finally {
-      setAuthLoading(false);
+      const msg = err.response?.data?.message || "Login failed";
+      setError(msg);
+      return { success: false, message: msg };
     }
   };
 
@@ -210,8 +209,10 @@ useEffect(() => {
 
       return { success: true };
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
-      return { success: false };
+      console.error("Registration Error Details:", err);
+      const msg = err.response?.data?.message || "Registration failed";
+      setError(msg);
+      return { success: false, message: msg };
     } finally {
       setAuthLoading(false);
     }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -21,9 +21,12 @@ export default function Register() {
   const { toast } = useToast();
 
   // Redirect if already logged in
-  if (user && user.role === 'user') {
-    navigate('/user/dashboard');
-  }
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && user.role === 'user') {
+      navigate('/user/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -74,19 +77,27 @@ export default function Register() {
     }
 
     try {
-      await register(name, email, password);
+      const response = await register(name, email, password);
 
-      toast({
-        title: 'Account Created!',
-        description: 'Your account has been created successfully. Welcome to Farbetter!',
-      });
-
-      navigate('/user/dashboard');
+      if (response.success) {
+        toast({
+          title: 'Account Created!',
+          description: 'Your account has been created successfully. Welcome to Farbetter!',
+        });
+        navigate('/user/dashboard');
+      } else {
+        toast({
+          title: 'Error',
+          description: response.message || 'Registration failed. Please try again.',
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
-      const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Registration failed. Please try again.';
+      // This catch block might not be reached if register handles errors, but good to keep as fallback
+      console.error("Unexpected registration error:", error);
       toast({
         title: 'Error',
-        description: errorMsg,
+        description: 'An unexpected error occurred.',
         variant: 'destructive',
       });
     } finally {

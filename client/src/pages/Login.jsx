@@ -71,6 +71,7 @@ export default function Login() {
   }, [searchParams, toast]);
 
   // Redirect if already logged in (including after OAuth login)
+  // Redirect if already logged in (including after OAuth login)
   useEffect(() => {
     if (user && user.role === 'user') {
       navigate('/user/dashboard');
@@ -105,16 +106,24 @@ export default function Login() {
     try {
       const response = await login(email, password);
 
-      toast({
-        title: 'Welcome Back!',
-        description: 'You have been logged in successfully.',
-      });
-
-      navigate('/user/dashboard');
+      if (response.success) {
+        toast({
+          title: 'Welcome Back!',
+          description: 'You have been logged in successfully.',
+        });
+        navigate('/user/dashboard');
+      } else {
+        toast({
+          title: 'Login Failed',
+          description: response.message || 'Invalid email or password. Please try again.',
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
+      console.error("Unexpected login error:", error);
       toast({
         title: 'Login Failed',
-        description: 'Invalid email or password. Please try again.',
+        description: 'An unexpected error occurred.',
         variant: 'destructive',
       });
     } finally {

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 import { Minus, Plus, ShoppingCart, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/context/CartContext";
@@ -19,7 +19,7 @@ export default function ShoppingCartComponent() {
   const safeItems = Array.isArray(items) ? items : [];
 
   const { user } = useAuth();
-  
+
   // Load default address on mount
   useEffect(() => {
     const loadDefaultAddress = async () => {
@@ -36,7 +36,7 @@ export default function ShoppingCartComponent() {
         console.error('Failed to load default address:', err);
       }
     };
-    
+
     if (user) loadDefaultAddress();
   }, [user]);
 
@@ -133,6 +133,9 @@ export default function ShoppingCartComponent() {
           <SheetTitle className="flex items-center justify-between">
             Shopping Cart ({safeItems.length})
           </SheetTitle>
+          <SheetDescription className="sr-only">
+            View and manage items in your shopping cart
+          </SheetDescription>
         </SheetHeader>
 
         {safeItems.length === 0 ? (
