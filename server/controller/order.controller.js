@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 const Order = require("../models/order.modal");
 const Cart = require("../models/cart.modal");
@@ -6,7 +7,7 @@ const Address = require("../models/address.modal");
 const User = require("../models/User.modal");
 const PaymentLog = require("../models/log.modal");
 const asyncHandler = require("../middlewares/asyncHandler");
-const { sendOrderConfirmationEmail } = require("../services/emailService");
+const { sendOrderConfirmationEmail, sendOrderStatusEmail } = require("../services/emailService");
 
 // 1️⃣ Place Order
 exports.placeOrder = asyncHandler(async (req, res) => {
@@ -55,30 +56,31 @@ exports.placeOrder = asyncHandler(async (req, res) => {
   await cart.save();
 
   // Log payment if online
-    // Create a PaymentLog for every order so admin logs include COD and online orders
-    try {
-      const logEntry = {
-        user: userId,
-        order: order._id,
-        amount: totalAmount,
-        paymentMethod: paymentMethod || 'COD',
-        paymentId: paymentId || null,
-        status: paymentMethod !== 'COD' && paymentId ? 'success' : (paymentMethod === 'COD' ? 'pending' : 'pending'),
-        providerResponse: {}
-      };
+  // Create a PaymentLog for every order so admin logs include COD and online orders
+  try {
+    const logEntry = {
+      user: userId,
+      order: order._id,
+      amount: totalAmount,
+      paymentMethod: paymentMethod || 'COD',
+      paymentId: paymentId || null,
+      status: paymentMethod !== 'COD' && paymentId ? 'success' : (paymentMethod === 'COD' ? 'pending' : 'pending'),
+      providerResponse: {}
+    };
 
-      await PaymentLog.create(logEntry);
-    } catch (logErr) {
-      console.error('Failed to create payment log (non-blocking):', logErr.message);
-    }
+    await PaymentLog.create(logEntry);
+  } catch (logErr) {
+    console.error('Failed to create payment log (non-blocking):', logErr.message);
+  }
 
   // Send order confirmation email
   try {
-      const user = await User.findById(userId);
+    const user = await User.findById(userId);
     if (user) {
       // Populate order with product details for email
+      // Populate order with product details for email
       const populatedOrder = await Order.findById(order._id).populate("items.product");
-      await sendOrderConfirmationEmail(user, populatedOrder);
+      sendOrderConfirmationEmail(user, populatedOrder).catch(err => console.error("Email sending error (background):", err.message));
     }
   } catch (emailError) {
     console.error("Email sending error (non-blocking):", emailError.message);
@@ -124,7 +126,7 @@ exports.getAllOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find()
     .populate("user", "name email")
     .populate("items.product", "title images price");
-  
+
   res.json({ success: true, orders });
 });
 
@@ -161,6 +163,18 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
     }
   } catch (logErr) {
     console.error('Failed to update payment logs after order status change:', logErr.message);
+  }
+
+  // Send status update email
+  if (orderStatus && previousOrderStatus !== orderStatus) {
+    try {
+      const user = await User.findById(order.user);
+      if (user) {
+        sendOrderStatusEmail(user.email, order, orderStatus).catch(err => console.error("Status email error (background):", err.message));
+      }
+    } catch (emailErr) {
+      console.error("Status email error:", emailErr.message);
+    }
   }
 
   res.json({ success: true, order });

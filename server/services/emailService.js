@@ -151,10 +151,10 @@ exports.sendOrderConfirmationEmail = async (user, order) => {
           <div class="order-number">
             <p><strong>Order ID:</strong> ${order._id}</p>
             <p><strong>Order Date:</strong> ${new Date(order.createdAt).toLocaleDateString("en-IN", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}</p>
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })}</p>
             <p><span class="order-status">Status: ${order.status || "Pending"}</span></p>
             <p><strong>Payment Method:</strong> ${order.paymentMethod}</p>
             <p><strong>Payment Status:</strong> ${order.paymentStatus}</p>
@@ -213,6 +213,7 @@ exports.sendOrderConfirmationEmail = async (user, order) => {
     const mailOptions = {
       from: `"Farbetter" <${process.env.EMAIL_USER}>`,
       to: user.email,
+      // Send copy to admin
       subject: `Order Confirmation - Order #${order._id}`,
       html: htmlContent,
       replyTo: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER,

@@ -1,21 +1,6 @@
 const express = require('express');
-const nodemailer = require('nodemailer');
-
 const router = express.Router();
-
-// Email transporter configuration
-let transporter;
-try {
-  transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-} catch (err) {
-  console.error('Failed to initialize email transporter:', err);
-}
+const transporter = require('../config/email');
 
 // Contact form email endpoint
 router.post('/send-email', async (req, res) => {
@@ -27,24 +12,20 @@ router.post('/send-email', async (req, res) => {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Check if email is configured
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    // Check if email is configured (using the same vars as the rest of the app)
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
       console.warn('Email service not configured. Credentials missing.');
-      // Still return success so form submits, but log the issue
-      return res.status(200).json({ 
+      return res.status(200).json({
         message: 'Thank you for your message. We will contact you soon.',
-        warning: 'Email service not configured' 
+        warning: 'Email service not configured'
       });
     }
 
-    if (!transporter) {
-      return res.status(500).json({ message: 'Email service unavailable' });
-    }
-
-    // Send email to admin
+    // Send email to admin/support
     const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.SUPPORT_EMAIL || 'Farbetterstore@gmail.com',
+      from: `"Farbetter Contact" <${process.env.EMAIL_USER}>`,
+      to: process.env.SUPPORT_EMAIL || process.env.ADMIN_EMAIL || 'Farbetterstore@gmail.com',
+      replyTo: email,
       subject: `New Contact Form Submission: ${subject}`,
       html: `
         <h2>New Contact Form Submission</h2>
@@ -54,12 +35,11 @@ router.post('/send-email', async (req, res) => {
         <p><strong>Message:</strong></p>
         <p>${message.replace(/\n/g, '<br>')}</p>
       `,
-      replyTo: email,
     };
 
     // Also send confirmation email to user
     const userMailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"Farbetter" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'We received your message - Farbetter',
       html: `

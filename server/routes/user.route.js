@@ -1,5 +1,5 @@
 const express = require("express");
-const { signin, login, logout ,getUserProfile,updateUserProfile} = require("../controller/user.controller");
+const { signin, login, logout, getUserProfile, updateUserProfile } = require("../controller/user.controller");
 const authMiddleware = require("../middlewares/auth.middleware");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
@@ -14,10 +14,13 @@ router.post("/login", login);
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
   router.get("/google/callback", passport.authenticate("google", { session: false }), (req, res) => {
-    
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    const frontendUrl = isProduction ? (process.env.FRONTEND_URL || "http://localhost:5173") : "http://localhost:5173";
+
     if (!req.user) {
       console.error("❌ Google OAuth failed: No user in request");
-      return res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/login?error=auth_failed`);
+      return res.redirect(`${frontendUrl}/login?error=auth_failed`);
     }
 
     try {
@@ -26,16 +29,16 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       if (!jwtSecret) {
         throw new Error("JWT_SECRET is not configured");
       }
-      
+
       const token = jwt.sign(
         { id: req.user._id, email: req.user.email },
         jwtSecret,
         { expiresIn: "7d" }
       );
-      res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/login?token=${token}`);
+      res.redirect(`${frontendUrl}/login?token=${token}`);
     } catch (err) {
       console.error("❌ Google OAuth - Token generation failed:", err.message);
-      res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/login?error=token_failed`);
+      res.redirect(`${frontendUrl}/login?error=token_failed`);
     }
   });
 }

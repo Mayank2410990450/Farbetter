@@ -150,7 +150,7 @@ export default function Header({ cartCount = 0, wishlistCount = 0 }) {
                 <img
                   src={FarbetterLogo}
                   alt="Farbetter"
-                  className="h-12 md:h-16 w-auto object-contain transition-all dark:invert"
+                  className="h-16 md:h-24 w-auto object-contain transition-all dark:invert"
                 />
               </div>
             </Link>
