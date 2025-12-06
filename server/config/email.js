@@ -1,22 +1,20 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-// Create transporter based on environment
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || "smtp.gmail.com",
-  port: process.env.EMAIL_PORT || 587,
-  secure: process.env.EMAIL_SECURE === "true" || false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+let resend;
 
-// Verify connection
-transporter.verify((error, success) => {
-  if (error) {
-    console.warn("Email service not configured:", error.message);
-  } else {
-  }
-});
+if (process.env.RESEND_API_KEY) {
+  resend = new Resend(process.env.RESEND_API_KEY);
+} else {
+  console.warn("⚠️  RESEND_API_KEY is missing. Email functionality will be disabled.");
+  // Mock object to prevent server crash
+  resend = {
+    emails: {
+      send: async () => {
+        console.warn("⚠️  Email sending skipped: RESEND_API_KEY is missing.");
+        return { error: { message: "RESEND_API_KEY is missing" } };
+      }
+    }
+  };
+}
 
-module.exports = transporter;
+module.exports = resend;

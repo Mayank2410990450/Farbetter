@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const transporter = require('../config/email');
+const resend = require('../config/email');
 
 // Contact form email endpoint
 router.post('/send-email', async (req, res) => {
@@ -13,8 +13,9 @@ router.post('/send-email', async (req, res) => {
     }
 
     // Check if email is configured (using the same vars as the rest of the app)
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      console.warn('Email service not configured. Credentials missing.');
+    // Check if Resend is configured
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('Resend API key not configured.');
       return res.status(200).json({
         message: 'Thank you for your message. We will contact you soon.',
         warning: 'Email service not configured'
@@ -22,10 +23,11 @@ router.post('/send-email', async (req, res) => {
     }
 
     // Send email to admin/support
-    const mailOptions = {
-      from: `"Farbetter Contact" <${process.env.EMAIL_USER}>`,
+    // Send email to admin/support
+    await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || "Farbetter Contact <onboarding@resend.dev>",
       to: process.env.SUPPORT_EMAIL || process.env.ADMIN_EMAIL || 'Farbetterstore@gmail.com',
-      replyTo: email,
+      reply_to: email,
       subject: `New Contact Form Submission: ${subject}`,
       html: `
         <h2>New Contact Form Submission</h2>
@@ -35,11 +37,11 @@ router.post('/send-email', async (req, res) => {
         <p><strong>Message:</strong></p>
         <p>${message.replace(/\n/g, '<br>')}</p>
       `,
-    };
+    });
 
     // Also send confirmation email to user
-    const userMailOptions = {
-      from: `"Farbetter" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || "Farbetter <onboarding@resend.dev>",
       to: email,
       subject: 'We received your message - Farbetter',
       html: `
@@ -50,10 +52,7 @@ router.post('/send-email', async (req, res) => {
         <p>${message.replace(/\n/g, '<br>')}</p>
         <p>Best regards,<br>Farbetter Team</p>
       `,
-    };
-
-    await transporter.sendMail(mailOptions);
-    await transporter.sendMail(userMailOptions);
+    });
 
     res.status(200).json({ message: 'Email sent successfully' });
   } catch (error) {

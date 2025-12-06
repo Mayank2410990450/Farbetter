@@ -1,4 +1,4 @@
-const transporter = require("../config/email");
+const resend = require("../config/email");
 
 /**
  * Send order confirmation email to user
@@ -9,8 +9,8 @@ const transporter = require("../config/email");
 exports.sendOrderConfirmationEmail = async (user, order) => {
   try {
     // Check if email is configured
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      console.warn("⚠️  Email service not configured. Skipping order confirmation email.");
+    if (!process.env.RESEND_API_KEY) {
+      console.warn("⚠️  Resend API key not configured. Skipping order confirmation email.");
       return;
     }
 
@@ -210,16 +210,14 @@ exports.sendOrderConfirmationEmail = async (user, order) => {
     `;
 
     // Send email
-    const mailOptions = {
-      from: `"Farbetter" <${process.env.EMAIL_USER}>`,
+    // Send email via Resend
+    await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || "Farbetter <onboarding@resend.dev>",
       to: user.email,
-      // Send copy to admin
       subject: `Order Confirmation - Order #${order._id}`,
       html: htmlContent,
-      replyTo: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER,
-    };
-
-    await transporter.sendMail(mailOptions);
+      reply_to: process.env.SUPPORT_EMAIL,
+    });
   } catch (error) {
     console.error("Failed to send order confirmation email:", error.message);
     // Don't throw error - email failure shouldn't block order placement
@@ -235,8 +233,8 @@ exports.sendOrderConfirmationEmail = async (user, order) => {
  */
 exports.sendOrderStatusEmail = async (email, order, status) => {
   try {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      console.warn("⚠️  Email service not configured. Skipping status update email.");
+    if (!process.env.RESEND_API_KEY) {
+      console.warn("⚠️  Resend API key not configured. Skipping status update email.");
       return;
     }
 
@@ -277,14 +275,12 @@ exports.sendOrderStatusEmail = async (email, order, status) => {
       </html>
     `;
 
-    const mailOptions = {
-      from: `"Farbetter" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || "Farbetter <onboarding@resend.dev>",
       to: email,
       subject: `Order Status Update - Order #${order._id}`,
       html: htmlContent,
-    };
-
-    await transporter.sendMail(mailOptions);
+    });
   } catch (error) {
     console.error("Failed to send status update email:", error.message);
   }

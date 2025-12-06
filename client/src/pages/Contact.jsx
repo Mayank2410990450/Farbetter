@@ -12,6 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import SEOHelmet from "@/components/SEOHelmet";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -86,131 +87,138 @@ export default function Contact() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <>
+      <SEOHelmet
+        title="Contact Us | Farbetter - Premium Protein Snacks"
+        description="Get in touch with Farbetter. We're here to answer your questions about our protein snacks, orders, and more."
+        canonical="https://farbetter.com/contact"
+      />
+      <div className="min-h-screen flex flex-col">
+        <Header />
 
-      <main className="flex-1">
-        <div className="container mx-auto px-4 pt-4">
-          <BackButton />
-        </div>
-        {/* Hero Section */}
-        <section className="bg-primary/5 py-8 sm:py-12 lg:py-16">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6" data-testid="heading-contact">Get In Touch</h1>
-              <p className="text-base sm:text-lg text-muted-foreground" data-testid="text-contact-intro">
-                Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-              </p>
-            </div>
+        <main className="flex-1">
+          <div className="container mx-auto px-4 pt-4">
+            <BackButton />
           </div>
-        </section>
+          {/* Hero Section */}
+          <section className="bg-primary/5 py-8 sm:py-12 lg:py-16">
+            <div className="container mx-auto px-4">
+              <div className="max-w-3xl mx-auto text-center">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6" data-testid="heading-contact">Get In Touch</h1>
+                <p className="text-base sm:text-lg text-muted-foreground" data-testid="text-contact-intro">
+                  Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+                </p>
+              </div>
+            </div>
+          </section>
 
-        {/* Contact Form & Info */}
-        <section className="py-8 sm:py-12 lg:py-16">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-12 max-w-6xl mx-auto">
-              {/* Contact Info Cards */}
-              <div className="md:col-span-2 lg:col-span-1 space-y-6">
-                <h2 className="text-xl sm:text-2xl font-bold mb-6" data-testid="heading-contact-info">Contact Information</h2>
-                {contactInfo.map((info, index) => (
-                  <Card key={index} className="p-6" data-testid={`card-info-${index}`}>
-                    <div className="flex items-start gap-4">
-                      <info.icon className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
-                      <div>
-                        <h3 className="font-semibold mb-1" data-testid={`heading-info-${index}`}>{info.title}</h3>
-                        {info.link ? (
-                          <a href={info.link} className="text-muted-foreground hover:text-primary" data-testid={`link-info-${index}`}>
-                            {info.content}
-                          </a>
-                        ) : (
-                          <p className="text-muted-foreground" data-testid={`text-info-${index}`}>{info.content}</p>
-                        )}
+          {/* Contact Form & Info */}
+          <section className="py-8 sm:py-12 lg:py-16">
+            <div className="container mx-auto px-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-12 max-w-6xl mx-auto">
+                {/* Contact Info Cards */}
+                <div className="md:col-span-2 lg:col-span-1 space-y-6">
+                  <h2 className="text-xl sm:text-2xl font-bold mb-6" data-testid="heading-contact-info">Contact Information</h2>
+                  {contactInfo.map((info, index) => (
+                    <Card key={index} className="p-6" data-testid={`card-info-${index}`}>
+                      <div className="flex items-start gap-4">
+                        <info.icon className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                        <div>
+                          <h3 className="font-semibold mb-1" data-testid={`heading-info-${index}`}>{info.title}</h3>
+                          {info.link ? (
+                            <a href={info.link} className="text-muted-foreground hover:text-primary" data-testid={`link-info-${index}`}>
+                              {info.content}
+                            </a>
+                          ) : (
+                            <p className="text-muted-foreground" data-testid={`text-info-${index}`}>{info.content}</p>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Contact Form */}
+                <div className="md:col-span-2 lg:col-span-2">
+                  <Card className="p-4 sm:p-6 lg:p-8">
+                    <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" data-testid="heading-contact-form">Send Us a Message</h2>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Your name" {...field} data-testid="input-name" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <Input type="email" placeholder="your@email.com" {...field} data-testid="input-email" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="subject"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Subject</FormLabel>
+                              <FormControl>
+                                <Input placeholder="How can we help?" {...field} data-testid="input-subject" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="message"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Message</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Tell us more about your inquiry..."
+                                  className="min-h-32"
+                                  {...field}
+                                  data-testid="input-message"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <Button type="submit" size="lg" className="w-full" data-testid="button-submit">
+                          Send Message
+                        </Button>
+                      </form>
+                    </Form>
                   </Card>
-                ))}
-              </div>
-
-              {/* Contact Form */}
-              <div className="md:col-span-2 lg:col-span-2">
-                <Card className="p-4 sm:p-6 lg:p-8">
-                  <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" data-testid="heading-contact-form">Send Us a Message</h2>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Your name" {...field} data-testid="input-name" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input type="email" placeholder="your@email.com" {...field} data-testid="input-email" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="subject"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Subject</FormLabel>
-                            <FormControl>
-                              <Input placeholder="How can we help?" {...field} data-testid="input-subject" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="message"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Message</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Tell us more about your inquiry..."
-                                className="min-h-32"
-                                {...field}
-                                data-testid="input-message"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <Button type="submit" size="lg" className="w-full" data-testid="button-submit">
-                        Send Message
-                      </Button>
-                    </form>
-                  </Form>
-                </Card>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
-      </main>
+          </section>
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </>
   );
 }

@@ -6,14 +6,18 @@ import { OrdersProvider } from "./context/OrdersContext.jsx";
 import { AuthProvider } from "./context/AuthContext";
 import App from "./App.jsx";
 
+import { HelmetProvider } from 'react-helmet-async';
+
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <AuthProvider>
-    <OrdersProvider>
-      <WishlistProvider>
-        <CartProvider>
-          <App />
-        </CartProvider>
-      </WishlistProvider>
-    </OrdersProvider>
-  </AuthProvider>
+  <HelmetProvider>
+    <AuthProvider>
+      <OrdersProvider>
+        <WishlistProvider>
+          <CartProvider>
+            <App />
+          </CartProvider>
+        </WishlistProvider>
+      </OrdersProvider>
+    </AuthProvider>
+  </HelmetProvider>
 );
