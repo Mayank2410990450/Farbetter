@@ -209,7 +209,6 @@ exports.sendOrderConfirmationEmail = async (user, order) => {
       </html>
     `;
 
-    // Send email
     // Send email via Resend
     await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || "Farbetter <onboarding@resend.dev>",
@@ -219,7 +218,10 @@ exports.sendOrderConfirmationEmail = async (user, order) => {
       reply_to: process.env.SUPPORT_EMAIL,
     });
   } catch (error) {
-    console.error("Failed to send order confirmation email:", error.message);
+    console.error("Failed to send order confirmation email:", error);
+    if (error.response) {
+      console.error("Resend API Error Response:", error.response.body);
+    }
     // Don't throw error - email failure shouldn't block order placement
   }
 };

@@ -13,6 +13,17 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    sourcemap: false, // Disable source maps to hide code
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console logs
+        drop_debugger: true, // Remove debugger statements
+      },
+      format: {
+        comments: false, // Remove comments
+      },
+    },
   },
   base: "/", // <-- this makes CSS/JS paths relative
 });

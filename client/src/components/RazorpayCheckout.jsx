@@ -17,8 +17,8 @@ export default function RazorpayCheckout({ amount, onSuccess, onError, selectedA
     setIsLoading(true);
 
     try {
-      // Step 1: Create order on backend
-      const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
+
+    const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
       const orderResponse = await fetch(`${serverUrl}/api/payments/create-order`, {
         method: 'POST',
         headers: {

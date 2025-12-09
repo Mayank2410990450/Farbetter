@@ -17,7 +17,7 @@ export default function CustomerReviews() {
         setLoading(true);
         // Fetch all products to get their reviews
         const products = await fetchProducts();
-        
+
         // Collect all reviews from products that have reviews
         const allReviews = [];
         (Array.isArray(products) ? products : [products]).forEach((product) => {
@@ -82,7 +82,7 @@ export default function CustomerReviews() {
             Loved by Our Customers
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto" data-testid="text-reviews-subtitle">
-            Join thousands of satisfied customers who've made the switch to healthier snacking
+            Amazon Reviews of 10+ customers with live movement
           </p>
         </div>
 
@@ -95,7 +95,7 @@ export default function CustomerReviews() {
               .toUpperCase() || "U";
 
             return (
-                <Card key={review._id} className="p-6" data-testid={`card-review-${review._id}`}>
+              <Card key={review._id} className="p-6" data-testid={`card-review-${review._id}`}>
                 <div className="flex items-center gap-3 mb-4">
                   <Avatar>
                     <AvatarFallback className="bg-primary text-primary-foreground">
@@ -121,7 +121,7 @@ export default function CustomerReviews() {
                   </div>
                 </div>
                 <p className="text-muted-foreground" data-testid={`text-review-comment-${review._id}`}>
-                  "{review.comment && (review.comment.length > 140 ? review.comment.slice(0,140) + '...' : review.comment)}"
+                  "{review.comment && (review.comment.length > 140 ? review.comment.slice(0, 140) + '...' : review.comment)}"
                 </p>
                 {review.comment && review.comment.length > 140 && (
                   <div className="mt-3">

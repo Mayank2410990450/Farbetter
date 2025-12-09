@@ -117,7 +117,7 @@ export default function Refund() {
                 <h2 className="text-2xl font-semibold mb-4" data-testid="heading-questions">Questions</h2>
                 <p className="text-muted-foreground">
                   If you have any questions about our refund policy, please don't hesitate to contact us at
-                  Farbetterstore@gmail.com or call us at +1 (555) 123-4567.
+                  Farbetterstore@gmail.com or call us at +91 9996120640.
                 </p>
               </section>
             </div>

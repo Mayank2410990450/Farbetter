@@ -17,9 +17,9 @@ export default function Footer() {
     ],
     support: [
       { label: "Help Center", href: "/contact" },
-      { label: "Shipping Info", href: "/refund" },
+      { label: "Shipping Info", href: "/shipping" },
       { label: "Returns & Exchanges", href: "/refund" },
-      { label: "FAQ", href: "/contact" },
+      { label: "FAQ", href: "/faq" },
     ],
     legal: [
       { label: "Privacy Policy", href: "/privacy" },
@@ -50,7 +50,7 @@ export default function Footer() {
               All Crunch, No Junk
             </p>
             <p className="text-sm text-foreground/80 mb-6 leading-relaxed">
-              Premium protein-rich snacks crafted with clean ingredients to fuel your active lifestyle.
+              To Make your snacking habit better with farbetter📍
             </p>
             <div className="flex gap-3">
               {socialLinks.map(({ icon: Icon, href, label, testId }) => (
@@ -130,7 +130,7 @@ export default function Footer() {
               <li className="flex items-start gap-2">
                 <Phone className="h-4 w-4 text-foreground flex-shrink-0 mt-0.5" />
                 <a href="tel:+1234567890" className="text-sm text-foreground/80 hover:text-foreground transition-colors">
-                  +91 9872471066
+                  +91 9996120640
                 </a>
               </li>
               <li className="flex items-start gap-2">

@@ -25,7 +25,7 @@ export default function Hero() {
         </h1>
 
         <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto" data-testid="text-hero-subtitle">
-          Delicious, nutrient-dense snacks crafted with clean ingredients and packed with protein to keep you energized
+          Make your snacking habit better with farbetter
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
@@ -39,7 +39,7 @@ export default function Hero() {
             Shop Now
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
-          <Button
+          {/* <Button
             size="lg"
             variant="outline"
             className="text-base px-8 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
@@ -48,22 +48,22 @@ export default function Hero() {
             onClick={() => navigate("/about")}
           >
             Learn More
-          </Button>
+          </Button> */}
         </div>
 
         {/* Trust Indicators */}
         <div className="flex flex-wrap gap-4 justify-center text-sm text-white/90">
           <div className="flex items-center gap-2" data-testid="text-trust-protein">
             <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground" />
-            25g Protein Per Serve
+            Palm Oil Free
           </div>
           <div className="flex items-center gap-2" data-testid="text-trust-sugar">
             <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground" />
-            No Added Sugar
+            No Trans Fat
           </div>
           <div className="flex items-center gap-2" data-testid="text-trust-ingredients">
             <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground" />
-            Clean Ingredients
+            Plant Protien
           </div>
         </div>
       </div>

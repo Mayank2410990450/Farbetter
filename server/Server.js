@@ -40,7 +40,7 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps, curl, postman)
     if (!origin) return callback(null, true);
 
-   
+
     const allowedOrigins = [
       'https://www.farbetterstore.com',
       'https://farbetterstore.com',
@@ -55,7 +55,7 @@ app.use(cors({
       callback(null, true);
     } else {
       console.log('⚠️  CORS blocked origin:', origin);
-      callback(null, true); // Allow anyway for development, but consider stricter policy for prod
+      callback(new Error('Not allowed by CORS')); // Block unauthorized origins
     }
   },
   credentials: true,

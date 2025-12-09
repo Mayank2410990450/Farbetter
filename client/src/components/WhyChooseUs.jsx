@@ -5,18 +5,18 @@ export default function WhyChooseUs() {
   const benefits = [
     {
       icon: Dumbbell,
-      title: "25g+ Protein",
-      description: "Every serving packs a powerful protein punch to fuel your active lifestyle and support muscle recovery.",
+      title: "🌿 Palm Oil Free",
+      description: "Made without harmful refined oils, ensuring cleaner digestion and long-term heart health.",
     },
     {
       icon: Leaf,
-      title: "No Artificial Flavors",
-      description: "Made with clean, natural ingredients you can pronounce. No artificial colors, flavors, or preservatives.",
+      title: "💪 No Trans Fat",
+      description: "Zero industrial fats that cause inflammation and cholesterol spikes — just safe, guilt-free crunch.",
     },
     {
       icon: Award,
-      title: "Nutrient-Dense",
-      description: "More than just protein - our snacks are packed with vitamins, minerals, and fiber for complete nutrition.",
+      title: "🌱 Plant Protein",
+      description: "Natural protein from plant sources to keep you full, energized, and nutritionally supported with every bite.",
     },
   ];
 
@@ -28,7 +28,7 @@ export default function WhyChooseUs() {
             Why Choose Farbetter?
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto" data-testid="text-why-subtitle">
-            We're committed to delivering premium protein snacks that taste amazing and fuel your body right
+            At Farbetter store, we make clean, palm-oil-free, guilt-free snacks that fit modern lifestyles without compromising taste, crunch, or purity.
           </p>
         </div>
 
