@@ -131,10 +131,10 @@ export default function AdminProducts() {
                   <div className="text-sm text-muted-foreground">No image</div>
                 )}
               </div>
-              <h3 className="font-semibold text-lg">{p.name}</h3>
+              <h3 className="font-semibold text-lg">{p.title || p.name}</h3>
               {p.tagline && <p className="text-sm text-muted-foreground">{p.tagline}</p>}
               {p.description && <p className="mt-2 text-sm">{p.description}</p>}
-              
+
               <div className="mt-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <label className="text-sm font-medium">Discount %:</label>
