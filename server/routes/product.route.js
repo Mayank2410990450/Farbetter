@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const upload = require("../middlewares/upload");
-const  protect  = require("../middlewares/auth.middleware");
+const protect = require("../middlewares/auth.middleware");
 const allowRoles = require("../middlewares/roles.middleware");
 const {
   createProduct,
@@ -9,7 +9,8 @@ const {
   getProductById,
   updateProduct,
   deleteProduct,
-  updateStock
+  updateStock,
+  uploadProductImage
 } = require("../controller/product.controller");
 
 // PUBLIC
@@ -21,5 +22,6 @@ router.post("/create", protect, allowRoles('admin'), upload.single("image"), cre
 router.put("/update/:id", protect, allowRoles('admin'), upload.single("image"), updateProduct);
 router.put("/stock/:id", protect, allowRoles('admin'), updateStock);
 router.delete("/delete/:id", protect, allowRoles('admin'), deleteProduct);
+router.post("/:id/upload-image", protect, allowRoles('admin'), upload.single("image"), uploadProductImage);
 
 module.exports = router;

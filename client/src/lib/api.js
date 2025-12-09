@@ -69,12 +69,12 @@ export const productsAPI = {
     },
 
     create: async (productData) => {
-        const response = await api.post('/products', productData);
+        const response = await api.post('/products/create', productData);
         return response.data;
     },
 
     update: async (id, productData) => {
-        const response = await api.put(`/products/${id}`, productData);
+        const response = await api.put(`/products/update/${id}`, productData);
         return response.data;
     },
 
@@ -84,7 +84,7 @@ export const productsAPI = {
     },
 
     delete: async (id) => {
-        const response = await api.delete(`/products/${id}`);
+        const response = await api.delete(`/products/delete/${id}`);
         return response.data;
     },
 
@@ -113,7 +113,7 @@ export const categoriesAPI = {
     },
 
     create: async (categoryData) => {
-        const response = await api.post('/categories', categoryData);
+        const response = await api.post('/categories/create', categoryData);
         return response.data;
     },
 

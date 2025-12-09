@@ -47,11 +47,25 @@ export const createCategory = async (data) => {
   return res.data;
 };
 
+export const updateCategory = async (id, data) => {
+  const res = await api.put(`/categories/${id}`, data, {
+    headers: getHeaders(),
+  });
+  return res.data;
+};
+
+export const deleteCategory = async (id) => {
+  const res = await api.delete(`/categories/${id}`, {
+    headers: getHeaders(),
+  });
+  return res.data;
+};
+
 // Orders
 export const fetchOrders = async () => {
   const res = await api.get(`/orders`, { headers: getHeaders() });
-    // Handle different response formats: { orders }, { data }, or array
-    return res.data?.data || res.data?.orders || res.data || [];
+  // Handle different response formats: { orders }, { data }, or array
+  return res.data?.data || res.data?.orders || res.data || [];
 };
 
 export const updateOrderStatus = async (id, status) => {

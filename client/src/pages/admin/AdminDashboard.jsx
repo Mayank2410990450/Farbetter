@@ -45,6 +45,8 @@ import {
   deleteProduct,
   fetchCategories,
   createCategory,
+  updateCategory,
+  deleteCategory,
   fetchOrders,
   updateOrderStatus,
   fetchLogs,
@@ -73,6 +75,11 @@ export default function AdminDashboard() {
   const [editingCategory, setEditingCategory] = useState(null);
   const [categoryForm, setCategoryForm] = useState({ name: '', image: '' });
 
+  // Dialog Open States
+  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+  const [isOfferDialogOpen, setIsOfferDialogOpen] = useState(false);
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+
   // Form states
   const [productForm, setProductForm] = useState({
     title: '',
@@ -96,7 +103,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     // Don't redirect while loading - wait for user state to be set/cleared
     if (authLoading) return;
-    
+
     if (user?.role !== 'admin') {
       navigate('/admin/login');
       return;
@@ -107,7 +114,7 @@ export default function AdminDashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       const [productsData, categoriesData, ordersData, logsData, offersData] = await Promise.all([
         fetchProducts(),
         fetchCategories(),
@@ -117,7 +124,7 @@ export default function AdminDashboard() {
       ]);
 
       // Sort orders by timestamp (newest first)
-      const sortedOrders = Array.isArray(ordersData) 
+      const sortedOrders = Array.isArray(ordersData)
         ? [...ordersData].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         : [];
 
@@ -159,7 +166,7 @@ export default function AdminDashboard() {
       formData.append('brand', productForm.brand);
       formData.append('price', productForm.price);
       formData.append('stock', productForm.stock);
-      
+
       // Append image file if selected
       if (imageFile) {
         formData.append('image', imageFile);
@@ -186,6 +193,7 @@ export default function AdminDashboard() {
       setImageFile(null);
       setImagePreview(null);
       setEditingProduct(null);
+      setIsProductDialogOpen(false); // Close dialog
       loadData();
     } catch (error) {
       console.error('Error:', error);
@@ -225,6 +233,7 @@ export default function AdminDashboard() {
     });
     setImageFile(null);
     setImagePreview(product.image || null);
+    setIsProductDialogOpen(true); // Open dialog
   };
 
   const handleUpdateOrderStatus = async (orderId, status) => {
@@ -250,16 +259,39 @@ export default function AdminDashboard() {
         return;
       }
 
-      await createCategory({ name: categoryForm.name, image: categoryForm.image });
-      toast({ title: 'Success', description: 'Category created' });
+      if (editingCategory) {
+        await updateCategory(editingCategory, { name: categoryForm.name, image: categoryForm.image });
+        toast({ title: 'Success', description: 'Category updated' });
+      } else {
+        await createCategory({ name: categoryForm.name, image: categoryForm.image });
+        toast({ title: 'Success', description: 'Category created' });
+      }
+
       setCategoryForm({ name: '', image: '' });
       setEditingCategory(null);
+      setIsCategoryDialogOpen(false);
       loadData();
     } catch (error) {
       console.error('Error:', error);
       toast({
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to create category',
+        description: error.response?.data?.message || 'Failed to save category',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    if (!confirm('Are you sure you want to delete this category?')) return;
+    try {
+      await deleteCategory(id);
+      toast({ title: 'Success', description: 'Category deleted' });
+      loadData();
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete category',
         variant: 'destructive',
       });
     }
@@ -283,6 +315,7 @@ export default function AdminDashboard() {
 
       setOfferForm({ title: '', description: '', badge: '', backgroundColor: 'bg-gradient-to-r from-blue-500 to-blue-600', icon: true });
       setEditingOffer(null);
+      setIsOfferDialogOpen(false); // Close dialog
       loadData();
     } catch (error) {
       console.error('Error:', error);
@@ -311,10 +344,10 @@ export default function AdminDashboard() {
     }
   };
 
-  const filteredProducts = Array.isArray(products) 
+  const filteredProducts = Array.isArray(products)
     ? products.filter((p) =>
-        (p.title || p.name || '').toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      (p.title || p.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : [];
 
   // Overview tab stats
@@ -330,9 +363,9 @@ export default function AdminDashboard() {
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <Button 
-              onClick={() => navigate("/")} 
-              variant="ghost" 
+            <Button
+              onClick={() => navigate("/")}
+              variant="ghost"
               size="sm"
               className="mr-2"
             >
@@ -342,15 +375,16 @@ export default function AdminDashboard() {
               <LayoutDashboard className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-              <p className="text-xs text-muted-foreground">Manage your store</p>
+              <h1 className="text-xl sm:text-2xl font-bold">Admin Dashboard</h1>
+              <p className="text-sm text-muted-foreground hidden sm:block">Manage your store</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm font-medium">{user?.email}</span>
+            <span className="text-sm font-medium hidden sm:inline">{user?.email}</span>
             <Button onClick={handleLogout} variant="outline" size="sm">
               <LogOut className="w-4 h-4 mr-2" />
-              Logout
+              <span className="hidden sm:inline">Logout</span>
+              <span className="sm:hidden">Exit</span>
             </Button>
           </div>
         </div>
@@ -374,13 +408,12 @@ export default function AdminDashboard() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-4 border-b-2 font-medium text-sm transition flex items-center gap-2 whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-muted-foreground hover:text-foreground'
-                  }`}
+                  className={`px-4 py-4 border-b-2 font-medium text-base transition flex items-center gap-2 whitespace-nowrap ${activeTab === tab.id
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                    }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-5 h-5" />
                   {tab.label}
                 </button>
               );
@@ -390,47 +423,47 @@ export default function AdminDashboard() {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-4 sm:p-6">
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Package className="w-4 h-4 text-blue-500" />
+                  <CardTitle className="text-base sm:text-lg font-medium flex items-center gap-2">
+                    <Package className="w-5 h-5 text-blue-500" />
                     Total Products
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{totalProducts}</div>
-                  <p className="text-xs text-muted-foreground">Active products</p>
+                  <div className="text-3xl sm:text-4xl font-bold">{totalProducts}</div>
+                  <p className="text-sm text-muted-foreground">Active products</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <ShoppingCart className="w-4 h-4 text-green-500" />
+                  <CardTitle className="text-base sm:text-lg font-medium flex items-center gap-2">
+                    <ShoppingCart className="w-5 h-5 text-green-500" />
                     Total Orders
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{totalOrders}</div>
-                  <p className="text-xs text-muted-foreground">All orders</p>
+                  <div className="text-3xl sm:text-4xl font-bold">{totalOrders}</div>
+                  <p className="text-sm text-muted-foreground">All orders</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-purple-500" />
+                  <CardTitle className="text-base sm:text-lg font-medium flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-purple-500" />
                     Total Revenue
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">₹{totalRevenue.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">From all orders</p>
+                  <div className="text-3xl sm:text-4xl font-bold">₹{totalRevenue.toFixed(2)}</div>
+                  <p className="text-sm text-muted-foreground">From all orders</p>
                 </CardContent>
               </Card>
             </div>
@@ -462,13 +495,11 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold">Products Management</h2>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button onClick={() => setEditingProduct(null)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Product
-                  </Button>
-                </DialogTrigger>
+              <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
+                <Button onClick={() => { setEditingProduct(null); setIsProductDialogOpen(true); }}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Product
+                </Button>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>{editingProduct ? 'Edit' : 'Add'} Product</DialogTitle>
@@ -596,7 +627,7 @@ export default function AdminDashboard() {
                 filteredProducts.map((product) => (
                   <Card key={product._id}>
                     <CardContent className="pt-6">
-                      <div className="flex justify-between items-start">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                         <div className="flex-1">
                           <h3 className="font-semibold">{product.title || product.name}</h3>
                           <p className="text-sm text-muted-foreground">{product.brand}</p>
@@ -638,13 +669,15 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold">Offers</h2>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button onClick={() => { setOfferForm({ title: '', description: '', badge: '', backgroundColor: 'bg-gradient-to-r from-blue-500 to-blue-600', icon: true }); setEditingOffer(null); }}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Offer
-                  </Button>
-                </DialogTrigger>
+              <Dialog open={isOfferDialogOpen} onOpenChange={setIsOfferDialogOpen}>
+                <Button onClick={() => {
+                  setOfferForm({ title: '', description: '', badge: '', backgroundColor: 'bg-gradient-to-r from-blue-500 to-blue-600', icon: true });
+                  setEditingOffer(null);
+                  setIsOfferDialogOpen(true);
+                }}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Offer
+                </Button>
                 <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>{editingOffer ? 'Edit Offer' : 'Add New Offer'}</DialogTitle>
@@ -708,7 +741,7 @@ export default function AdminDashboard() {
                 offers.map((offer) => (
                   <Card key={offer._id} className="border">
                     <CardContent className="pt-6">
-                      <div className={`${offer.backgroundColor} text-white p-6 rounded mb-4 flex items-center justify-between`}>
+                      <div className={`${offer.backgroundColor} text-white p-6 rounded mb-4 flex flex-col sm:flex-row items-center justify-between gap-4`}>
                         <div className="flex items-center gap-3">
                           {offer.icon && <Gift className="h-5 w-5" />}
                           <div>
@@ -731,6 +764,7 @@ export default function AdminDashboard() {
                               icon: offer.icon,
                             });
                             setEditingOffer(offer._id);
+                            setIsOfferDialogOpen(true);
                           }}
                         >
                           <Edit2 className="w-3 h-3 mr-1" />
@@ -768,7 +802,7 @@ export default function AdminDashboard() {
                 orders.map((order) => (
                   <Card key={order._id}>
                     <CardContent className="pt-6">
-                      <div className="flex justify-between items-start mb-4">
+                      <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
                         <div className="flex-1">
                           <p className="font-semibold">Order #{order._id?.slice(-8)}</p>
                           <p className="text-sm text-muted-foreground">
@@ -784,8 +818,8 @@ export default function AdminDashboard() {
                               order.orderStatus === 'delivered'
                                 ? 'default'
                                 : order.orderStatus === 'shipped'
-                                ? 'secondary'
-                                : 'outline'
+                                  ? 'secondary'
+                                  : 'outline'
                             }
                           >
                             {order.orderStatus}
@@ -852,7 +886,7 @@ export default function AdminDashboard() {
                       const paymentId = log.paymentId || '—';
                       const status = log.status || log.orderStatus || 'pending';
                       const created = log.createdAt ? new Date(log.createdAt).toLocaleString() : '';
-                      
+
                       // Determine status badge color
                       const getStatusColor = (status) => {
                         if (status === 'success') return 'bg-green-100 text-green-800 border-green-300';
@@ -883,7 +917,7 @@ export default function AdminDashboard() {
 
                       return (
                         <div key={idx} className={`p-4 rounded border ${getStatusColor(status)}`}>
-                          <div className="flex justify-between items-start gap-4">
+                          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                             <div className="flex-1">
                               <p className="font-semibold text-sm">Order #{String(orderId).slice(-8)}</p>
                               <p className="text-xs opacity-90">User: {user}</p>
@@ -903,18 +937,18 @@ export default function AdminDashboard() {
                                     if (newStatus === status) return;
                                     try {
                                       await updatePaymentLogStatus(logId, newStatus);
-                                      toast({ 
-                                        title: 'Success', 
-                                        description: `Payment status updated to ${newStatus}` 
+                                      toast({
+                                        title: 'Success',
+                                        description: `Payment status updated to ${newStatus}`
                                       });
                                       // Refresh logs
                                       const updatedLogs = await fetchLogs();
                                       setLogs(updatedLogs);
                                     } catch (err) {
-                                      toast({ 
-                                        title: 'Error', 
-                                        description: 'Failed to update status', 
-                                        variant: 'destructive' 
+                                      toast({
+                                        title: 'Error',
+                                        description: 'Failed to update status',
+                                        variant: 'destructive'
                                       });
                                     }
                                   }}
@@ -950,16 +984,18 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold">Categories</h2>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button onClick={() => { setCategoryForm({ name: '', image: '' }); setEditingCategory(null); }}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Category
-                  </Button>
-                </DialogTrigger>
+              <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+                <Button onClick={() => {
+                  setCategoryForm({ name: '', image: '' });
+                  setEditingCategory(null);
+                  setIsCategoryDialogOpen(true);
+                }}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Category
+                </Button>
                 <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Add New Category</DialogTitle>
+                    <DialogTitle>{editingCategory ? 'Edit Category' : 'Add New Category'}</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleAddCategory} className="space-y-4">
                     <div>
@@ -979,7 +1015,7 @@ export default function AdminDashboard() {
                         onChange={(e) => setCategoryForm({ ...categoryForm, image: e.target.value })}
                       />
                     </div>
-                    <Button type="submit" className="w-full">Create Category</Button>
+                    <Button type="submit" className="w-full">{editingCategory ? 'Update' : 'Create'} Category</Button>
                   </form>
                 </DialogContent>
               </Dialog>
@@ -992,8 +1028,8 @@ export default function AdminDashboard() {
                     {categories.map((cat) => (
                       <div key={cat._id} className="p-4 border rounded-lg">
                         {cat.image && (
-                          <img 
-                            src={cat.image} 
+                          <img
+                            src={cat.image}
                             alt={cat.name}
                             className="w-full h-32 object-cover rounded mb-2"
                           />
@@ -1001,15 +1037,23 @@ export default function AdminDashboard() {
                         <h3 className="font-semibold">{cat.name}</h3>
                         <p className="text-xs text-muted-foreground mb-3">ID: {cat._id}</p>
                         <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             variant="outline"
                             onClick={() => {
                               setCategoryForm({ name: cat.name, image: cat.image || '' });
                               setEditingCategory(cat._id);
+                              setIsCategoryDialogOpen(true);
                             }}
                           >
                             <Edit2 className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteCategory(cat._id)}
+                          >
+                            <Trash2 className="w-3 h-3" />
                           </Button>
                         </div>
                       </div>
@@ -1027,7 +1071,7 @@ export default function AdminDashboard() {
         {activeTab === 'settings' && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold">Settings</h2>
-            
+
             {/* Shipping Settings Card */}
             <Card>
               <CardHeader>

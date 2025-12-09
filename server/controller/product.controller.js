@@ -98,32 +98,31 @@ exports.createProduct = asyncHandler(async (req, res) => {
     });
   }
 
-  // Check file
-  if (!req.file) {
-    return res.status(400).json({
-      success: false,
-      message: "Image is required",
+  // Check file - OPTIONAL NOW
+  let imageUrl = null;
+  if (req.file) {
+    // Upload image to Cloudinary if file exists
+    const uploadImage = () => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "farbetter/products" },
+          (error, result) => {
+            if (result) resolve(result);
+            else reject(error);
+          }
+        );
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
+    };
+
+    const result = await uploadImage().catch(err => {
+      console.error("Cloudinary upload error:", err);
+      throw err;
     });
+    imageUrl = result.secure_url;
   }
 
-  // Upload image to Cloudinary
-  const uploadImage = () => {
-    return new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        { folder: "farbetter/products" },
-        (error, result) => {
-          if (result) resolve(result);
-          else reject(error);
-        }
-      );
-      streamifier.createReadStream(req.file.buffer).pipe(stream);
-    });
-  };
 
-  const result = await uploadImage().catch(err => {
-    console.error("Cloudinary upload error:", err);
-    throw err; // re-throw for asyncHandler to catch
-  });
 
   // Create product
   const product = await Product.create({
@@ -133,7 +132,7 @@ exports.createProduct = asyncHandler(async (req, res) => {
     brand,
     price,
     stock,
-    image: result.secure_url, // URL from Cloudinary
+    image: imageUrl, // URL from Cloudinary (can be null)
   });
 
   res.status(201).json({
@@ -582,6 +581,56 @@ exports.updateStock = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: "Stock updated successfully",
+    product
+  });
+});
+
+// --------------------------------------------------
+// @desc    Upload Product Image (Admin)
+// --------------------------------------------------
+exports.uploadProductImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message: "Image file is required"
+    });
+  }
+
+  // Upload image to Cloudinary
+  const uploadImage = () => {
+    return new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: "farbetter/products" },
+        (error, result) => {
+          if (result) resolve(result);
+          else reject(error);
+        }
+      );
+      streamifier.createReadStream(req.file.buffer).pipe(stream);
+    });
+  };
+
+  const result = await uploadImage().catch(err => {
+    console.error("Cloudinary upload error:", err);
+    throw err;
+  });
+
+  const product = await Product.findByIdAndUpdate(
+    req.params.id,
+    { image: result.secure_url }, // update just the image field
+    { new: true }
+  );
+
+  if (!product) {
+    return res.status(404).json({
+      success: false,
+      message: "Product not found"
+    });
+  }
+
+  res.json({
+    success: true,
+    message: "Image uploaded successfully",
     product
   });
 });
