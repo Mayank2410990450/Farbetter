@@ -14,6 +14,13 @@ exports.sendOrderConfirmationEmail = async (user, order) => {
       return;
     }
 
+    if (!user || !user.email) {
+      console.error("❌ sendOrderConfirmationEmail: Missing user or user email.", user);
+      return;
+    }
+
+    console.log(`📧 Preparing order confirmation email for Order #${order._id} to ${user.email}`);
+
     // Format order items for email
     const itemsHTML = order.items
       .map(
@@ -210,19 +217,20 @@ exports.sendOrderConfirmationEmail = async (user, order) => {
     `;
 
     // Send email via Resend
-    await resend.emails.send({
+    const data = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || "Farbetter <onboarding@resend.dev>",
       to: user.email,
       subject: `Order Confirmation - Order #${order._id}`,
       html: htmlContent,
       reply_to: process.env.SUPPORT_EMAIL,
     });
+
+    console.log(`✅ Order confirmation email sent to ${user.email}. ID: ${data.id}`);
   } catch (error) {
-    console.error("Failed to send order confirmation email:", error);
+    console.error("❌ Failed to send order confirmation email:", error.message);
     if (error.response) {
       console.error("Resend API Error Response:", error.response.body);
     }
-    // Don't throw error - email failure shouldn't block order placement
   }
 };
 

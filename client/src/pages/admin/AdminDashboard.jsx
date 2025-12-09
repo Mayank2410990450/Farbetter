@@ -1095,15 +1095,15 @@ export default function AdminDashboard() {
               <CardContent className="space-y-4">
                 <div>
                   <Label>Email</Label>
-                  <Input value={user?.email} disabled />
+                  <Input value={user?.email} disabled className="disabled:opacity-100 disabled:cursor-default text-foreground font-medium bg-muted/50" />
                 </div>
                 <div>
                   <Label>Name</Label>
-                  <Input value={user?.name} disabled />
+                  <Input value={user?.name} disabled className="disabled:opacity-100 disabled:cursor-default text-foreground font-medium bg-muted/50" />
                 </div>
                 <div>
                   <Label>Role</Label>
-                  <Input value={user?.role} disabled />
+                  <Input value={user?.role} disabled className="disabled:opacity-100 disabled:cursor-default text-foreground font-medium bg-muted/50" />
                 </div>
                 <Button variant="destructive" onClick={handleLogout}>
                   Logout
