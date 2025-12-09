@@ -1,20 +1,22 @@
+// config/email.js
 const { Resend } = require("resend");
 
 let resend;
 
-if (process.env.RESEND_API_KEY) {
-  resend = new Resend(process.env.RESEND_API_KEY);
-} else {
-  console.warn("⚠️  RESEND_API_KEY is missing. Email functionality will be disabled.");
-  // Mock object to prevent server crash
+if (!process.env.RESEND_API_KEY) {
+  console.warn("⚠️ RESEND_API_KEY is missing. Emails will not be sent.");
+
+  // Safe mock object so app does not crash
   resend = {
     emails: {
       send: async () => {
-        console.warn("⚠️  Email sending skipped: RESEND_API_KEY is missing.");
-        return { error: { message: "RESEND_API_KEY is missing" } };
-      }
-    }
+        console.warn("⚠️ Email skipped: RESEND_API_KEY not configured.");
+        return { id: null, skipped: true };
+      },
+    },
   };
+} else {
+  resend = new Resend(process.env.RESEND_API_KEY);
 }
 
 module.exports = resend;
