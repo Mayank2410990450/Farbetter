@@ -77,8 +77,8 @@ export default function ProductCard({
   const isOnSale = product?.originalPrice && product.originalPrice > ((sizes[selectedSize] && sizes[selectedSize].price) || product.price || 0);
   const discountPercent = isOnSale
     ? Math.round(
-        ((product.originalPrice - ((sizes[selectedSize] && sizes[selectedSize].price) || product.price || 0)) / product.originalPrice) * 100
-      )
+      ((product.originalPrice - ((sizes[selectedSize] && sizes[selectedSize].price) || product.price || 0)) / product.originalPrice) * 100
+    )
     : 0;
 
   // Render star rating
@@ -88,11 +88,10 @@ export default function ProductCard({
         {Array.from({ length: 5 }).map((_, i) => (
           <Star
             key={i}
-            className={`h-3 w-3 ${
-              i < Math.round(rating)
+            className={`h-3 w-3 ${i < Math.round(rating)
                 ? "fill-yellow-400 text-yellow-400"
-                : "text-gray-300"
-            }`}
+                : "text-muted-foreground/30"
+              }`}
           />
         ))}
       </div>
@@ -102,16 +101,16 @@ export default function ProductCard({
   return (
     <Card className="overflow-hidden hover-elevate group relative h-full flex flex-col">
       {/* Wishlist Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`absolute top-2 left-2 z-10 bg-background/80 backdrop-blur-sm transition-transform transform ${isWishlisted ? "scale-110 text-destructive" : "hover:scale-105"}`}
-          onClick={handleWishlistToggle}
-          data-testid={`button-wishlist-${pid}`}
-          aria-label={isWishlisted ? `Remove ${displayName} from wishlist` : `Add ${displayName} to wishlist`}
-        >
-          <Heart className={`h-4 w-4 transition-colors ${isWishlisted ? "fill-current" : ""}`} fill={isWishlisted ? "currentColor" : "none"} />
-        </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className={`absolute top-2 left-2 z-10 bg-background/80 backdrop-blur-sm transition-transform transform ${isWishlisted ? "scale-110 text-destructive" : "hover:scale-105"}`}
+        onClick={handleWishlistToggle}
+        data-testid={`button-wishlist-${pid}`}
+        aria-label={isWishlisted ? `Remove ${displayName} from wishlist` : `Add ${displayName} to wishlist`}
+      >
+        <Heart className={`h-4 w-4 transition-colors ${isWishlisted ? "fill-current" : ""}`} fill={isWishlisted ? "currentColor" : "none"} />
+      </Button>
 
       {/* Top-right badges */}
       <div className="absolute top-2 right-2 z-10 flex flex-col items-end gap-2">

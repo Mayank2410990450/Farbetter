@@ -77,7 +77,9 @@ export default function Register() {
     }
 
     try {
+      console.log("Attempting registration with:", { name, email });
       const response = await register(name, email, password);
+      console.log("Registration response:", response);
 
       if (response.success) {
         toast({
@@ -86,6 +88,7 @@ export default function Register() {
         });
         navigate('/user/dashboard');
       } else {
+        console.error("Registration failed with response:", response);
         toast({
           title: 'Error',
           description: response.message || 'Registration failed. Please try again.',
@@ -93,7 +96,6 @@ export default function Register() {
         });
       }
     } catch (error) {
-      // This catch block might not be reached if register handles errors, but good to keep as fallback
       console.error("Unexpected registration error:", error);
       toast({
         title: 'Error',
@@ -112,7 +114,11 @@ export default function Register() {
         <Card className="shadow-lg">
           <CardHeader className="space-y-1 px-4 sm:px-6 py-4 sm:py-6">
             <div className="flex justify-center mb-4">
-              <div className="font-serif text-2xl sm:text-3xl font-bold text-primary">Farbetter</div>
+              <img
+                src="/logo.png"
+                alt="Farbetter"
+                className="h-20 w-auto object-contain"
+              />
             </div>
             <CardTitle className="text-xl sm:text-2xl text-center">Create Account</CardTitle>
             <CardDescription className="text-center text-xs sm:text-sm">

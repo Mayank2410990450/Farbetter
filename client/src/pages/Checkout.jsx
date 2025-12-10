@@ -37,7 +37,7 @@ export default function Checkout() {
     const loadData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch shipping settings
         const shippingRes = await fetchShippingSettings();
         setShippingSettings(shippingRes?.settings || null);
@@ -72,9 +72,9 @@ export default function Checkout() {
   // Calculate shipping based on settings
   useEffect(() => {
     if (!shippingSettings) return;
-    
+
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    
+
     // Check if free shipping threshold is met
     if (shippingSettings.freeShippingThreshold && subtotal >= shippingSettings.freeShippingThreshold) {
       setShippingCost(0);
@@ -163,7 +163,7 @@ export default function Checkout() {
               try {
 
                 // verify payment and create order on server
-                const verify = await verifyRazorpayPayment({ 
+                const verify = await verifyRazorpayPayment({
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_payment_id: response.razorpay_payment_id,
                   razorpay_signature: response.razorpay_signature,
@@ -265,11 +265,10 @@ export default function Checkout() {
                 {addresses.map((addr) => (
                   <label
                     key={addr._id}
-                    className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition ${
-                      selectedAddressId === addr._id
+                    className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition ${selectedAddressId === addr._id
                         ? "border-primary bg-primary/5"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
+                        : "border-border hover:border-primary/30"
+                      }`}
                   >
                     <input
                       type="radio"

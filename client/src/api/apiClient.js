@@ -2,7 +2,7 @@ import axios from "axios";
 import { apiRateLimiter } from "@/lib/rateLimiter";
 
 const api = axios.create({
-  baseURL: `${import.meta.env.VITE_SERVER_URL}/api`,
+  baseURL: `${import.meta.env.VITE_SERVER_URL || 'http://localhost:5000'}/api`,
   withCredentials: true, // Enable sending cookies with requests
 });
 
