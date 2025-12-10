@@ -217,8 +217,11 @@ exports.sendOrderConfirmationEmail = async (user, order) => {
     `;
 
     // Send email via Resend
+    let fromAddress = process.env.RESEND_FROM_EMAIL || "Farbetter <support@farbetterstore.com>";
+    if (fromAddress) fromAddress = fromAddress.replace(/["']/g, "").trim();
+
     const data = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "Farbetter <support@farbetterstore.com>",
+      from: fromAddress,
       to: user.email,
       subject: `Order Confirmation - Order #${order._id}`,
       html: htmlContent,
@@ -285,8 +288,11 @@ exports.sendOrderStatusEmail = async (email, order, status) => {
       </html>
     `;
 
+    let fromAddress = process.env.RESEND_FROM_EMAIL || "Farbetter <support@farbetterstore.com>";
+    if (fromAddress) fromAddress = fromAddress.replace(/["']/g, "").trim();
+
     await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "Farbetter <support@farbetterstore.com>",
+      from: fromAddress,
       to: email,
       subject: `Order Status Update - Order #${order._id}`,
       html: htmlContent,
