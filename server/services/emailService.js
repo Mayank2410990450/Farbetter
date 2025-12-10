@@ -33,10 +33,10 @@ exports.sendOrderConfirmationEmail = async (user, order) => {
             ${item.quantity}
           </td>
           <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: right;">
-            ₹${item.price.toFixed(2)}
+            ₹${(item.price || 0).toFixed(2)}
           </td>
           <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: right;">
-            <strong>₹${(item.price * item.quantity).toFixed(2)}</strong>
+            <strong>₹${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</strong>
           </td>
         </tr>
       `
@@ -49,11 +49,11 @@ exports.sendOrderConfirmationEmail = async (user, order) => {
       <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
         <h3 style="margin-top: 0;">Shipping Address</h3>
         <p style="margin: 5px 0;">
-          <strong>${order.shippingAddress.fullName}</strong><br>
-          ${order.shippingAddress.street}<br>
-          ${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.postalCode}<br>
-          ${order.shippingAddress.country}<br>
-          📞 ${order.shippingAddress.phone}
+          <strong>${order.shippingAddress.fullName || "User"}</strong><br>
+          ${order.shippingAddress.street || ""}<br>
+          ${order.shippingAddress.city || ""}, ${order.shippingAddress.state || ""} ${order.shippingAddress.postalCode || ""}<br>
+          ${order.shippingAddress.country || ""}<br>
+          📞 ${order.shippingAddress.phone || ""}
         </p>
       </div>
     `
@@ -218,7 +218,7 @@ exports.sendOrderConfirmationEmail = async (user, order) => {
 
     // Send email via Resend
     const data = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "Farbetter <onboarding@resend.dev>",
+      from: process.env.RESEND_FROM_EMAIL || "Farbetter <support@farbetterstore.com>",
       to: user.email,
       subject: `Order Confirmation - Order #${order._id}`,
       html: htmlContent,
@@ -286,7 +286,7 @@ exports.sendOrderStatusEmail = async (email, order, status) => {
     `;
 
     await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "Farbetter <onboarding@resend.dev>",
+      from: process.env.RESEND_FROM_EMAIL || "Farbetter <support@farbetterstore.com>",
       to: email,
       subject: `Order Status Update - Order #${order._id}`,
       html: htmlContent,
