@@ -24,6 +24,7 @@ const paymentRoutes = require("./routes/payment.route");
 const offerRoutes = require("./routes/offer.route");
 const contactRoutes = require("./routes/contact.route");
 const shippingRoutes = require("./routes/shipping.route");
+const debugRoutes = require("./routes/debug.route");
 
 const app = express();
 
@@ -87,6 +88,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/offers", offerRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/shipping", shippingRoutes);
+app.use("/api/debug", debugRoutes);
 
 
 // Test route
