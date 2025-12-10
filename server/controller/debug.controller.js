@@ -22,7 +22,12 @@ exports.testEmail = async (req, res) => {
     `;
 
         // Attempt Send
-        const fromAddress = process.env.RESEND_FROM_EMAIL || "Farbetter <support@farbetterstore.com>";
+        let fromAddress = process.env.RESEND_FROM_EMAIL || "Farbetter <support@farbetterstore.com>";
+
+        // Sanitize: Remove extra quotes if user added them in Render dashboard
+        fromAddress = fromAddress.replace(/["']/g, "").trim();
+
+        console.log(`🔍 Debug: Sending FROM: [${fromAddress}]`);
 
         const data = await resend.emails.send({
             from: fromAddress,
@@ -33,12 +38,13 @@ exports.testEmail = async (req, res) => {
 
         if (data.error) {
             console.error("❌ Resend API Error:", data.error);
-            return res.status(500).json({
+            return res.status(422).json({
                 success: false,
                 message: "Resend API returned an error",
                 error: data.error,
                 envCheck: {
-                    apikey_exists: !!process.env.RESEND_API_KEY
+                    apikey_exists: !!process.env.RESEND_API_KEY,
+                    attemptedFrom: fromAddress
                 }
             });
         }
