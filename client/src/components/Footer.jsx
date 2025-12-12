@@ -50,7 +50,7 @@ export default function Footer() {
               All Crunch, No Junk
             </p>
             <p className="text-sm text-foreground/80 mb-6 leading-relaxed">
-              To Make your snacking habit better with farbetter📍
+              To Make your snacking habit better with farbetter
             </p>
             <div className="flex gap-3">
               {socialLinks.map(({ icon: Icon, href, label, testId }) => (

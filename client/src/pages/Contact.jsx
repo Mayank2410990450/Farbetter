@@ -69,8 +69,8 @@ export default function Contact() {
     {
       icon: Phone,
       title: "Phone",
-      content: "+91 9872471066",
-      link: "tel:+919872471066"
+      content: "+91 9996120640",
+      link: "tel:+91 9996120640"
     },
     {
       icon: MapPin,
