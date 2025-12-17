@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { fetchProduct } from "@/api/product";
 import { fetchAddresses } from "@/api/address";
+import { getOptimizedImageUrl } from "@/lib/utils";
 
 export default function ShoppingCartComponent() {
   const { items = [], updateQuantity, removeItem, clearCart } = useCart();
@@ -161,7 +162,7 @@ export default function ShoppingCartComponent() {
                 return (
                   <div key={itemId} className="flex gap-4">
                     <img
-                      src={item.image || "/placeholder.png"}
+                      src={getOptimizedImageUrl(item.image || "/placeholder.png", 100)}
                       alt={item.name || "Product"}
                       loading="lazy"
                       className="w-20 h-20 object-cover rounded-md bg-muted"

@@ -12,6 +12,7 @@ export default function AdminSettings() {
   const [shippingCost, setShippingCost] = useState(0);
   const [freeThreshold, setFreeThreshold] = useState('');
   const [description, setDescription] = useState('');
+  const [codEnabled, setCodEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
@@ -27,6 +28,7 @@ export default function AdminSettings() {
         setShippingCost(res.settings.shippingCost || 0);
         setFreeThreshold(res.settings.freeShippingThreshold ? String(res.settings.freeShippingThreshold) : '');
         setDescription(res.settings.description || '');
+        setCodEnabled(res.settings.codEnabled !== undefined ? res.settings.codEnabled : true);
       }
     } catch (err) {
       console.error('Error loading settings:', err);
@@ -37,17 +39,18 @@ export default function AdminSettings() {
   const save = async () => {
     try {
       setSaving(true);
-      
+
       // Validate inputs
       const cost = Math.max(0, Number(shippingCost) || 0);
       const threshold = freeThreshold === '' ? null : Math.max(0, Number(freeThreshold) || 0);
-      
-      const res = await updateShippingSettings({ 
-        shippingCost: cost, 
-        freeShippingThreshold: threshold, 
-        description 
+
+      const res = await updateShippingSettings({
+        shippingCost: cost,
+        freeShippingThreshold: threshold,
+        description,
+        codEnabled
       });
-      
+
       setSettings(res.settings);
       toast({ title: 'Success', description: 'Shipping settings saved successfully' });
     } catch (err) {
@@ -63,7 +66,7 @@ export default function AdminSettings() {
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <h1 className="text-3xl font-bold mb-2">Settings</h1>
         <p className="text-muted-foreground mb-6">Manage global store settings</p>
-        
+
         <Card className="p-6 space-y-6">
           <div>
             <h2 className="text-xl font-bold mb-4">Shipping Configuration</h2>
@@ -73,11 +76,11 @@ export default function AdminSettings() {
                 <label className="block text-sm font-medium mb-2">
                   Base Shipping Cost (₹)
                 </label>
-                <Input 
-                  type="number" 
-                  min="0" 
+                <Input
+                  type="number"
+                  min="0"
                   step="10"
-                  value={shippingCost} 
+                  value={shippingCost}
                   onChange={(e) => setShippingCost(e.target.value)}
                   placeholder="e.g., 50"
                 />
@@ -91,11 +94,11 @@ export default function AdminSettings() {
                 <label className="block text-sm font-medium mb-2">
                   Free Shipping Threshold (₹) - Optional
                 </label>
-                <Input 
-                  type="number" 
-                  min="0" 
+                <Input
+                  type="number"
+                  min="0"
                   step="100"
-                  value={freeThreshold} 
+                  value={freeThreshold}
                   onChange={(e) => setFreeThreshold(e.target.value)}
                   placeholder="e.g., 500 (leave empty to disable)"
                 />
@@ -104,13 +107,13 @@ export default function AdminSettings() {
                 </p>
               </div>
 
-              {/* Description */}
+              {/* Shipping Description */}
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Shipping Description
                 </label>
-                <Textarea 
-                  value={description} 
+                <Textarea
+                  value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="e.g., Standard shipping 5-7 business days"
                   className="min-h-24"
@@ -120,6 +123,20 @@ export default function AdminSettings() {
                 </p>
               </div>
 
+              {/* COD Toggle */}
+              <div className="flex items-center justify-between border p-4 rounded-lg bg-white">
+                <div>
+                  <h3 className="font-medium">Cash on Delivery (COD)</h3>
+                  <p className="text-xs text-muted-foreground">Enable or disable COD option at checkout</p>
+                </div>
+                <div
+                  className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${codEnabled ? 'bg-primary' : 'bg-gray-300'}`}
+                  onClick={() => setCodEnabled(!codEnabled)}
+                >
+                  <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${codEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                </div>
+              </div>
+
               {/* Current Settings Display */}
               {settings && (
                 <div className="bg-muted/30 p-4 rounded mt-6">
@@ -127,6 +144,7 @@ export default function AdminSettings() {
                   <ul className="text-sm space-y-1 text-muted-foreground">
                     <li>• Base Shipping: ₹{settings.shippingCost || 0}</li>
                     <li>• Free Shipping Threshold: {settings.freeShippingThreshold ? `₹${settings.freeShippingThreshold}` : 'Disabled'}</li>
+                    <li>• COD Status: {settings.codEnabled ? 'Enabled' : 'Disabled'}</li>
                     <li>• Last Updated: {new Date(settings.updatedAt).toLocaleDateString()}</li>
                   </ul>
                 </div>

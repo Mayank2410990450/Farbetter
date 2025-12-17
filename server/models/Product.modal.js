@@ -26,6 +26,21 @@ const productSchema = new mongoose.Schema(
       required: true
     },
 
+    mrp: {
+      type: Number,
+      default: 0
+    },
+
+    size: {
+      type: String,
+      default: ""
+    },
+
+    bulletPoints: {
+      type: [String],
+      default: []
+    },
+
     discount: {
       type: Number,
       default: 0,
@@ -33,15 +48,16 @@ const productSchema = new mongoose.Schema(
       max: 100
     },
 
-    image: { type: String, required: false }, // One image only
+    image: { type: String, required: false },
+    images: [{ type: String }],
     averageRating: {
-  type: Number,
-  default: 0
-},
-numReviews: {
-  type: Number,
-  default: 0
-},
+      type: Number,
+      default: 0
+    },
+    numReviews: {
+      type: Number,
+      default: 0
+    },
 
 
     stock: {
@@ -50,7 +66,7 @@ numReviews: {
       default: 0
     }
   },
-  { timestamps: true } 
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("Product", productSchema);

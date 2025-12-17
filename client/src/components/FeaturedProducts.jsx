@@ -14,7 +14,7 @@ export default function FeaturedProducts({
     <section className="py-8 md:py-16">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="font-serif text-2xl md:text-4xl font-bold" data-testid="text-featured-title">
+          <h2 className="font-serif text-xl md:text-2xl font-normal" data-testid="text-featured-title">
             {title}
           </h2>
           <Button variant="outline" data-testid="button-view-all" onClick={() => navigate("/shop")}>

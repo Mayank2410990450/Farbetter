@@ -89,6 +89,7 @@ app.use("/api/offers", offerRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/shipping", shippingRoutes);
 app.use("/api/debug", debugRoutes);
+app.use("/api/testimonials", require("./routes/testimonial.route"));
 
 
 // Test route

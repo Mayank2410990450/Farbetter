@@ -81,7 +81,7 @@ const streamifier = require("streamifier");
 // Create a new product (ADMIN)
 // -----------------------------------------------------
 exports.createProduct = asyncHandler(async (req, res) => {
-  const { title, description, category, brand, price, stock } = req.body;
+  const { title, description, category, brand, price, stock, size, mrp, bulletPoints } = req.body;
 
   if (!title || !category || !price) {
     return res.status(400).json({
@@ -98,31 +98,43 @@ exports.createProduct = asyncHandler(async (req, res) => {
     });
   }
 
-  // Check file - OPTIONAL NOW
-  let imageUrl = null;
-  if (req.file) {
-    // Upload image to Cloudinary if file exists
-    const uploadImage = () => {
+  let parsedBulletPoints = [];
+  if (bulletPoints) {
+    try {
+      parsedBulletPoints = typeof bulletPoints === 'string' ? JSON.parse(bulletPoints) : bulletPoints;
+    } catch (e) {
+      parsedBulletPoints = [];
+    }
+  }
+
+  let imageUrls = [];
+  if (req.files && req.files.length > 0) {
+    const uploadPromises = req.files.map(file => {
       return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
-          { folder: "farbetter/products" },
+          {
+            folder: "farbetter/products",
+            width: 1000,
+            crop: "limit",
+            quality: "auto",
+            fetch_format: "auto"
+          },
           (error, result) => {
-            if (result) resolve(result);
+            if (result) resolve(result.secure_url);
             else reject(error);
           }
         );
-        streamifier.createReadStream(req.file.buffer).pipe(stream);
+        streamifier.createReadStream(file.buffer).pipe(stream);
       });
-    };
-
-    const result = await uploadImage().catch(err => {
-      console.error("Cloudinary upload error:", err);
-      throw err;
     });
-    imageUrl = result.secure_url;
+
+    try {
+      imageUrls = await Promise.all(uploadPromises);
+    } catch (err) {
+      console.error("Cloudinary upload error:", err);
+      return res.status(500).json({ success: false, message: "Image upload failed" });
+    }
   }
-
-
 
   // Create product
   const product = await Product.create({
@@ -131,8 +143,12 @@ exports.createProduct = asyncHandler(async (req, res) => {
     category,
     brand,
     price,
+    mrp: mrp || 0,
+    size: size || "",
+    bulletPoints: parsedBulletPoints,
     stock,
-    image: imageUrl, // URL from Cloudinary (can be null)
+    image: imageUrls.length > 0 ? imageUrls[0] : null,
+    images: imageUrls
   });
 
   res.status(201).json({
@@ -456,6 +472,7 @@ exports.getProducts = asyncHandler(async (req, res) => {
   // Base query
   let mongoQuery = Product.find(query)
     .populate("category", "name slug image")
+    .select("title name category brand price images image stock averageRating numReviews slug createdAt")
     .skip((page - 1) * limit)
     .limit(Number(limit));
 
@@ -502,7 +519,16 @@ exports.getProductById = asyncHandler(async (req, res) => {
 // @desc    Update Product (Admin)
 // --------------------------------------------------
 exports.updateProduct = asyncHandler(async (req, res) => {
-  const { category } = req.body;
+  const { category, bulletPoints } = req.body;
+  const updates = { ...req.body };
+
+  if (bulletPoints) {
+    try {
+      updates.bulletPoints = typeof bulletPoints === 'string' ? JSON.parse(bulletPoints) : bulletPoints;
+    } catch (e) {
+      // invalid json, ignore or fallback
+    }
+  }
 
   // If category updated → validate
   if (category) {
@@ -515,7 +541,59 @@ exports.updateProduct = asyncHandler(async (req, res) => {
     }
   }
 
-  const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+  // Handle Image Upload if files exist
+  if (req.files && req.files.length > 0) {
+    const uploadPromises = req.files.map(file => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: "farbetter/products",
+            width: 1000,
+            crop: "limit",
+            quality: "auto",
+            fetch_format: "auto"
+          },
+          (error, result) => {
+            if (result) resolve(result.secure_url);
+            else reject(error);
+          }
+        );
+        streamifier.createReadStream(file.buffer).pipe(stream);
+      });
+    });
+
+    try {
+      const uploadedUrls = await Promise.all(uploadPromises);
+
+      // Fetch current product to append to images
+      const currentProduct = await Product.findById(req.params.id);
+      if (currentProduct) {
+        let existingImages = currentProduct.images || [];
+        // Migration: treat singular image as first item of images if images array is empty
+        if (existingImages.length === 0 && currentProduct.image) {
+          existingImages = [currentProduct.image];
+        }
+
+        // Append new images to existing ones
+        updates.images = [...existingImages, ...uploadedUrls];
+        if (!currentProduct.image && uploadedUrls.length > 0) {
+          updates.image = uploadedUrls[0];
+        }
+      } else {
+        updates.images = uploadedUrls;
+        if (uploadedUrls.length > 0) updates.image = uploadedUrls[0];
+      }
+
+    } catch (err) {
+      console.error("Cloudinary upload error:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Image upload failed"
+      });
+    }
+  }
+
+  const product = await Product.findByIdAndUpdate(req.params.id, updates, {
     new: true
   }).populate("category", "name slug image");
 
@@ -600,7 +678,13 @@ exports.uploadProductImage = asyncHandler(async (req, res) => {
   const uploadImage = () => {
     return new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        { folder: "farbetter/products" },
+        {
+          folder: "farbetter/products",
+          width: 1000,
+          crop: "limit",
+          quality: "auto",
+          fetch_format: "auto"
+        },
         (error, result) => {
           if (result) resolve(result);
           else reject(error);

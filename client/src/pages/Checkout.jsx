@@ -11,6 +11,7 @@ import { fetchAddresses } from "@/api/address";
 import { placeOrder } from "@/api/order";
 import { fetchShippingSettings } from "@/api/admin";
 import { Heart, Trash2, Truck, Lock, MapPin } from "lucide-react";
+import { getOptimizedImageUrl } from "@/lib/utils";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -81,7 +82,12 @@ export default function Checkout() {
     } else {
       setShippingCost(shippingSettings.shippingCost || 0);
     }
-  }, [items, shippingSettings]);
+
+    // If COD is disabled and currently selected, switch to Razorpay or another method
+    if (shippingSettings.codEnabled === false && paymentMethod === "COD") {
+      setPaymentMethod("Razorpay");
+    }
+  }, [items, shippingSettings, paymentMethod]);
 
   // Redirect if cart is empty
   if (items.length === 0 && !loading) {
@@ -266,8 +272,8 @@ export default function Checkout() {
                   <label
                     key={addr._id}
                     className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition ${selectedAddressId === addr._id
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/30"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/30"
                       }`}
                   >
                     <input
@@ -309,7 +315,7 @@ export default function Checkout() {
                   className="flex gap-4 pb-4 border-b last:border-0"
                 >
                   <img
-                    src={item.image}
+                    src={getOptimizedImageUrl(item.image, 100)}
                     alt={item.name}
                     loading="lazy"
                     className="w-20 h-20 rounded object-cover"
@@ -344,21 +350,23 @@ export default function Checkout() {
 
             <div className="space-y-3">
               {/* COD */}
-              <label className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition">
-                <input
-                  type="radio"
-                  name="payment"
-                  value="COD"
-                  checked={paymentMethod === "COD"}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                />
-                <div>
-                  <p className="font-semibold">Cash on Delivery (COD)</p>
-                  <p className="text-sm text-muted-foreground">
-                    Pay when you receive your order
-                  </p>
-                </div>
-              </label>
+              {shippingSettings?.codEnabled !== false && (
+                <label className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition">
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="COD"
+                    checked={paymentMethod === "COD"}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                  />
+                  <div>
+                    <p className="font-semibold">Cash on Delivery (COD)</p>
+                    <p className="text-sm text-muted-foreground">
+                      Pay when you receive your order
+                    </p>
+                  </div>
+                </label>
+              )}
 
               {/* Razorpay */}
               <label className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition">

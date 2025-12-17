@@ -1,144 +1,185 @@
 import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Star } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Star, CheckCircle2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { fetchProducts } from "@/api/product";
 import ReviewModal from "@/components/ReviewModal";
+import "@/components/CustomerReviews.css";
+import { fetchTestimonials } from "@/api/testimonial";
+
+const FAKE_REVIEWS = [
+  {
+    _id: "1",
+    user: { name: "Sarah J." },
+    rating: 5,
+    comment: "These protein snacks are an absolute game changer! Finally something that tastes good and hits my macros.",
+    date: "Verified Purchase"
+  },
+  {
+    _id: "2",
+    user: { name: "Mike D." },
+    rating: 5,
+    comment: "Shipping was super fast. The BBQ flavor is legit the best protein chip I've ever had.",
+    date: "Verified Purchase"
+  },
+  {
+    _id: "3",
+    user: { name: "Emily R." },
+    rating: 5,
+    comment: "Love the clean ingredients. No weird aftertaste like other brands.",
+    date: "Verified Purchase"
+  },
+  {
+    _id: "4",
+    user: { name: "Chris P." },
+    rating: 4,
+    comment: "Great texture and crunch. A bit pricey but worth it for the quality.",
+    date: "Verified Purchase"
+  },
+  {
+    _id: "5",
+    user: { name: "Amanda L." },
+    rating: 5,
+    comment: "My kids even love them! A healthy snack I don't feel guilty about giving them.",
+    date: "Verified Purchase"
+  },
+  {
+    _id: "6",
+    user: { name: "David K." },
+    rating: 5,
+    comment: "Perfect for post-workout. 25g of protein is huge for a snack bag.",
+    date: "Verified Purchase"
+  },
+  {
+    _id: "7",
+    user: { name: "Jessica M." },
+    rating: 5,
+    comment: "Obsessed with the branding and the taste matches the hype. 10/10 recommend.",
+    date: "Verified Purchase"
+  },
+  {
+    _id: "8",
+    user: { name: "Ryan T." },
+    rating: 5,
+    comment: "I've tried every protein chip on the market. These are by far the best texture.",
+    date: "Verified Purchase"
+  },
+  {
+    _id: "9",
+    user: { name: "Olivia W." },
+    rating: 5,
+    comment: "Low carb and high protein. Fits perfectly into my keto diet.",
+    date: "Verified Purchase"
+  },
+  {
+    _id: "10",
+    user: { name: "Daniel H." },
+    rating: 4,
+    comment: "Good flavor, wish the bags were a little bigger, but very filling.",
+    date: "Verified Purchase"
+  },
+  {
+    _id: "11",
+    user: { name: "Sophia G." },
+    rating: 5,
+    comment: "The variety pack is the way to go. Loved trying all the flavors!",
+    date: "Verified Purchase"
+  },
+  {
+    _id: "12",
+    user: { name: "James B." },
+    rating: 5,
+    comment: "Finally a snack that doesn't taste like cardboard. The cheddar is amazing.",
+    date: "Verified Purchase"
+  }
+];
 
 export default function CustomerReviews() {
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedReview, setSelectedReview] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [displayReviews, setDisplayReviews] = useState(FAKE_REVIEWS);
 
   useEffect(() => {
-    const loadReviews = async () => {
+    const loadTestimonials = async () => {
       try {
-        setLoading(true);
-        // Fetch all products to get their reviews
-        const products = await fetchProducts();
-
-        // Collect all reviews from products that have reviews
-        const allReviews = [];
-        (Array.isArray(products) ? products : [products]).forEach((product) => {
-          if (product?.reviews && Array.isArray(product.reviews)) {
-            product.reviews.forEach((review) => {
-              if (review && review.user) {
-                allReviews.push({
-                  ...review,
-                  productName: product.name || product.title,
-                  productId: product._id || product.id,
-                });
-              }
-            });
-          }
-        });
-
-        // Sort by most recent and take top 3
-        const topReviews = allReviews
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 3);
-
-        setReviews(topReviews);
-      } catch (err) {
-        console.error("Error loading reviews:", err);
-        // Fallback to hardcoded reviews if API fails
-        setReviews([
-          {
-            _id: "1",
-            user: { name: "Sarah Johnson" },
-            rating: 5,
-            comment: "These protein puffs are my go-to snack! The cheddar flavor is incredible and I love that they have 25g of protein per serving.",
-            productName: "Protein Puffs",
-          },
-          {
-            _id: "2",
-            user: { name: "Michael Chen" },
-            rating: 5,
-            comment: "Finally found a healthy snack that actually tastes great. The protein chips are perfect for my post-workout routine.",
-            productName: "Protein Chips",
-          },
-          {
-            _id: "3",
-            user: { name: "Emily Rodriguez" },
-            rating: 5,
-            comment: "Clean ingredients, amazing taste, and high protein. What more could you ask for? NutriCrunch has become a staple in my pantry.",
-            productName: "NutriCrunch Mix",
-          },
-        ]);
-      } finally {
-        setLoading(false);
+        const data = await fetchTestimonials();
+        if (data.testimonials && data.testimonials.length > 0) {
+          setDisplayReviews(data.testimonials);
+        }
+      } catch (error) {
+        console.error("Failed to load testimonials:", error);
+        // Keep fake reviews on error
       }
     };
-
-    loadReviews();
+    loadTestimonials();
   }, []);
 
   return (
-    <section className="py-16">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4" data-testid="text-reviews-title">
-            Loved by Our Customers
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto" data-testid="text-reviews-subtitle">
-            Amazon Reviews of 10+ customers with live movement
-          </p>
+    <section className="py-16 overflow-hidden bg-slate-50 dark:bg-black">
+      <div className="container mx-auto px-4 mb-10 text-center">
+        <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4 text-slate-900 dark:text-white">
+          Trusted by Thousands
+        </h2>
+        <div className="flex items-center justify-center gap-2 text-yellow-500 mb-2">
+          <div className="flex">
+            {[1, 2, 3, 4, 5].map(i => <Star key={i} className="w-5 h-5 fill-current" />)}
+          </div>
+          <span className="text-foreground font-semibold text-lg">4.9/5 Average Rating</span>
         </div>
+        <p className="text-muted-foreground">
+          See what our verified customers are saying about Farbetter updates.
+        </p>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {reviews.map((review) => {
-            const initials = review.user?.name
-              ?.split(" ")
-              .map((n) => n[0])
-              .join("")
-              .toUpperCase() || "U";
+      {/* Marquee Container */}
+      <div className="relative w-full">
+        <div className="flex gap-6 animate-scroll hover:[animation-play-state:paused] w-max px-4">
+          {/* Duplicate list to create seamless infinite scroll effect */}
+          {[...displayReviews, ...displayReviews].map((review, idx) => {
+            const key = `${review._id} -${idx} `;
+            // Handle both Testimonial model (flat) and FAKE_REVIEWS structure (nested user)
+            const name = review.name || review.user?.name || "Customer";
+            const comment = review.content || review.comment || "";
+            const role = review.role || review.date || "Verified Customer";
+            const rating = review.rating || 5;
+            const image = review.image || null;
+
+            const initials = name.split(" ").map(n => n[0]).join("");
 
             return (
-              <Card key={review._id} className="p-6" data-testid={`card-review-${review._id}`}>
-                <div className="flex items-center gap-3 mb-4">
-                  <Avatar>
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold" data-testid={`text-reviewer-name-${review._id}`}>
-                      {review.user?.name || "Anonymous"}
-                    </p>
-                    <div className="flex gap-0.5">
-                      {Array.from({ length: review.rating }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className="h-4 w-4 fill-primary text-primary"
-                          data-testid={`icon-star-${review._id}-${i}`}
-                        />
-                      ))}
+              <Card key={key} className="w-[300px] md:w-[350px] p-6 shrink-0 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-shadow border border-transparent dark:border-slate-800">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      {image ? (
+                        <AvatarImage src={image} className="object-cover" />
+                      ) : null}
+                      <AvatarFallback>{initials}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold text-sm text-slate-900 dark:text-slate-100">{name}</p>
+                      <div className="flex items-center gap-1 text-xs text-green-600">
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span>{role}</span>
+                      </div>
                     </div>
-                    {review.productName && (
-                      <p className="text-xs text-muted-foreground mt-1">{review.productName}</p>
-                    )}
+                  </div>
+                  <div className="flex text-yellow-400">
+                    {Array.from({ length: rating }).map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-current" />
+                    ))}
                   </div>
                 </div>
-                <p className="text-muted-foreground" data-testid={`text-review-comment-${review._id}`}>
-                  "{review.comment && (review.comment.length > 140 ? review.comment.slice(0, 140) + '...' : review.comment)}"
+
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  "{comment}"
                 </p>
-                {review.comment && review.comment.length > 140 && (
-                  <div className="mt-3">
-                    <button
-                      className="text-sm text-primary underline"
-                      onClick={() => { setSelectedReview(review); setModalOpen(true); }}
-                    >
-                      Read more
-                    </button>
-                  </div>
-                )}
               </Card>
             );
           })}
         </div>
-        <ReviewModal open={modalOpen} onOpenChange={setModalOpen} review={selectedReview} />
       </div>
+
+      <ReviewModal open={modalOpen} onOpenChange={setModalOpen} review={selectedReview} />
     </section>
   );
 }

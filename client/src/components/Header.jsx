@@ -1,4 +1,5 @@
 import { Heart, User, Search, Menu, LogOut } from "lucide-react";
+import { useWishlist } from "@/context/WishlistContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import FarbetterLogo from "@assets/generated_images/Farbetter_logo.png";
@@ -29,8 +30,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchCategories } from "@/api/category";
 
-export default function Header({ cartCount = 0, wishlistCount = 0 }) {
+export default function Header({ cartCount = 0 }) {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { wishlist } = useWishlist();
   const [categories, setCategories] = useState([
     { name: "Protein Puffs", slug: "protein-puffs" },
     { name: "Protein Chips", slug: "protein-chips" },
@@ -140,6 +142,12 @@ export default function Header({ cartCount = 0, wishlistCount = 0 }) {
                       Contact
                     </div>
                   </Link>
+                  <Link to="/wishlist">
+                    <div className="text-base font-semibold hover-elevate active-elevate-2 px-4 py-2 rounded-md cursor-pointer flex items-center justify-between">
+                      Wishlist
+                      {wishlist.length > 0 && <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{wishlist.length}</span>}
+                    </div>
+                  </Link>
                 </nav>
               </SheetContent>
             </Sheet>
@@ -234,6 +242,17 @@ export default function Header({ cartCount = 0, wishlistCount = 0 }) {
           <div className="flex items-center gap-4 flex-shrink-0">
             <ThemeToggle />
 
+            <Button variant="ghost" size="icon" className="relative hidden md:flex" aria-label="Wishlist" asChild>
+              <Link to="/wishlist">
+                <Heart className="h-5 w-5" />
+                {wishlist.length > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                    {wishlist.length}
+                  </span>
+                )}
+              </Link>
+            </Button>
+
             <ShoppingCartComponent />
 
             {!isLoading && (
@@ -268,7 +287,7 @@ export default function Header({ cartCount = 0, wishlistCount = 0 }) {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link to="/user/dashboard#wishlist" className="flex items-center gap-2">
+                        <Link to="/wishlist" className="flex items-center gap-2">
                           <span>Wishlist</span>
                         </Link>
                       </DropdownMenuItem>

@@ -6,6 +6,7 @@ const Product = require("../models/Product.modal");
 const Address = require("../models/address.modal");
 const User = require("../models/User.modal");
 const PaymentLog = require("../models/log.modal");
+const ShippingSettings = require("../models/shippingSettings.modal");
 const asyncHandler = require("../middlewares/asyncHandler");
 const { sendOrderConfirmationEmail, sendOrderStatusEmail } = require("../services/emailService");
 
@@ -20,6 +21,14 @@ exports.placeOrder = asyncHandler(async (req, res) => {
 
   const address = await Address.findOne({ _id: selectedAddressId, user: userId });
   if (!address) return res.status(400).json({ success: false, message: "Invalid address" });
+
+  // Validate Payment Method
+  if (paymentMethod === "COD") {
+    const settings = await ShippingSettings.findOne({});
+    if (settings && settings.codEnabled === false) {
+      return res.status(400).json({ success: false, message: "Cash on Delivery is currently disabled" });
+    }
+  }
 
   let totalAmount = 0;
   const orderItems = [];

@@ -24,6 +24,7 @@ const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const Refund = lazy(() => import("@/pages/Refund"));
 const Shipping = lazy(() => import("@/pages/Shipping"));
+const Wishlist = lazy(() => import("@/pages/Wishlist"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 const AdminLogin = lazy(() => import("@/pages/admin/Login"));
@@ -61,6 +62,7 @@ function Router() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/refund" element={<Refund />} />
           <Route path="/shipping" element={<Shipping />} />
+          <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/login" element={<Login />} />

@@ -18,8 +18,8 @@ router.get("/", getProducts);
 router.get("/:id", getProductById);
 
 // ADMIN ONLY
-router.post("/create", protect, allowRoles('admin'), upload.single("image"), createProduct);
-router.put("/update/:id", protect, allowRoles('admin'), upload.single("image"), updateProduct);
+router.post("/create", protect, allowRoles('admin'), upload.array("images", 10), createProduct);
+router.put("/update/:id", protect, allowRoles('admin'), upload.array("images", 10), updateProduct);
 router.put("/stock/:id", protect, allowRoles('admin'), updateStock);
 router.delete("/delete/:id", protect, allowRoles('admin'), deleteProduct);
 router.post("/:id/upload-image", protect, allowRoles('admin'), upload.single("image"), uploadProductImage);

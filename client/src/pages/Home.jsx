@@ -30,8 +30,11 @@ export default function Home() {
         api.get('/products?sort=newest&limit=6')
       ]);
 
-      setFeaturedProducts(featuredData);
-      setNewArrivals(newArrivalsRes.data.products || newArrivalsRes.data);
+      const featured = Array.isArray(featuredData) ? featuredData : featuredData.products || [];
+      const newArrivals = newArrivalsRes.data.products || (Array.isArray(newArrivalsRes.data) ? newArrivalsRes.data : []);
+
+      setFeaturedProducts(featured);
+      setNewArrivals(newArrivals);
     } catch (err) {
       console.error("Error loading products", err);
     } finally {
@@ -72,11 +75,11 @@ export default function Home() {
           ) : (
             <>
               <FeaturedProducts products={featuredProducts} title="Best Sellers" />
-             
+
               <WhyChooseUs />
-               <FeaturedProducts products={newArrivals} title="New Arrivals" />
+              <FeaturedProducts products={newArrivals} title="New Arrivals" />
               <CustomerReviews />
-             
+
             </>
           )}
         </main>

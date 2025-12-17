@@ -58,6 +58,12 @@ import {
   updateOffer,
   deleteOffer,
 } from '@/api/offer';
+import {
+  fetchTestimonials,
+  createTestimonial,
+  updateTestimonial,
+  deleteTestimonial
+} from '@/api/testimonial';
 
 export default function AdminDashboard() {
   const { user, logout, authLoading } = useAuth();
@@ -87,7 +93,10 @@ export default function AdminDashboard() {
     category: '',
     brand: '',
     price: '',
+    mrp: '',
+    size: '',
     stock: '',
+    bulletPoints: ['', '', '', '', ''],
   });
   const [offerForm, setOfferForm] = useState({
     title: '',
@@ -96,9 +105,24 @@ export default function AdminDashboard() {
     backgroundColor: 'bg-gradient-to-r from-blue-500 to-blue-600',
     icon: true,
   });
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  /* Existing state declarations */
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
+
+
+  // Testimonial states
+  const [isTestimonialDialogOpen, setIsTestimonialDialogOpen] = useState(false);
+  const [editingTestimonial, setEditingTestimonial] = useState(null);
+  const [testimonialForm, setTestimonialForm] = useState({
+    name: '',
+    role: 'Verified Customer',
+    content: '',
+    rating: 5,
+  });
+  const [testimonialImage, setTestimonialImage] = useState(null);
+  const [testimonialImagePreview, setTestimonialImagePreview] = useState('');
 
   useEffect(() => {
     // Don't redirect while loading - wait for user state to be set/cleared
@@ -115,12 +139,13 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
 
-      const [productsData, categoriesData, ordersData, logsData, offersData] = await Promise.all([
+      const [productsData, categoriesData, ordersData, logsData, offersData, testimonialsData] = await Promise.all([
         fetchProducts(),
         fetchCategories(),
         fetchOrders(),
         fetchLogs(),
         fetchAllOffers(),
+        fetchTestimonials(),
       ]);
 
       // Sort orders by timestamp (newest first)
@@ -138,6 +163,7 @@ export default function AdminDashboard() {
       setOrders(sortedOrders);
       setLogs(sortedLogs);
       setOffers(Array.isArray(offersData) ? offersData : []);
+      setTestimonials(testimonialsData?.testimonials || []);
     } catch (error) {
       console.error('🔴 AdminDashboard.loadData: Error -', error);
       toast({
@@ -165,11 +191,16 @@ export default function AdminDashboard() {
       formData.append('category', productForm.category);
       formData.append('brand', productForm.brand);
       formData.append('price', productForm.price);
+      formData.append('size', productForm.size);
+      formData.append('mrp', productForm.mrp);
       formData.append('stock', productForm.stock);
+      formData.append('bulletPoints', JSON.stringify(productForm.bulletPoints.filter(b => b.trim() !== "")));
 
-      // Append image file if selected
-      if (imageFile) {
-        formData.append('image', imageFile);
+      // Append image files if selected
+      if (imageFiles.length > 0) {
+        imageFiles.forEach((file) => {
+          formData.append('images', file);
+        });
       }
 
       if (editingProduct) {
@@ -188,10 +219,13 @@ export default function AdminDashboard() {
         category: '',
         brand: '',
         price: '',
+        mrp: '',
+        size: '',
         stock: '',
+        bulletPoints: ['', '', '', '', ''],
       });
-      setImageFile(null);
-      setImagePreview(null);
+      setImageFiles([]);
+      setImagePreviews([]);
       setEditingProduct(null);
       setIsProductDialogOpen(false); // Close dialog
       loadData();
@@ -229,10 +263,21 @@ export default function AdminDashboard() {
       category: product.category?._id || product.category,
       brand: product.brand,
       price: product.price,
+      mrp: product.mrp || '',
+      size: product.size || '',
       stock: product.stock,
+      bulletPoints: (product.bulletPoints && product.bulletPoints.length > 0)
+        ? [...product.bulletPoints, ...Array(5).fill('')].slice(0, 5)
+        : ['', '', '', '', ''],
     });
-    setImageFile(null);
-    setImagePreview(product.image || null);
+    setImageFiles([]);
+    if (product.images && product.images.length > 0) {
+      setImagePreviews(product.images);
+    } else if (product.image) {
+      setImagePreviews([product.image]);
+    } else {
+      setImagePreviews([]);
+    }
     setIsProductDialogOpen(true); // Open dialog
   };
 
@@ -344,6 +389,49 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleSaveTestimonial = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData();
+      formData.append('name', testimonialForm.name);
+      formData.append('role', testimonialForm.role);
+      formData.append('content', testimonialForm.content);
+      formData.append('rating', testimonialForm.rating);
+      if (testimonialImage) {
+        formData.append('image', testimonialImage);
+      }
+
+      if (editingTestimonial) {
+        await updateTestimonial(editingTestimonial._id, formData);
+        toast({ title: 'Success', description: 'Testimonial updated' });
+      } else {
+        await createTestimonial(formData);
+        toast({ title: 'Success', description: 'Testimonial created' });
+      }
+      setIsTestimonialDialogOpen(false);
+      setTestimonialForm({ name: '', role: 'Verified Customer', content: '', rating: 5 });
+      setTestimonialImage(null);
+      setTestimonialImagePreview('');
+      setEditingTestimonial(null);
+      loadData();
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Error', description: 'Failed to save testimonial', variant: 'destructive' });
+    }
+  };
+
+  const handleDeleteTestimonial = async (id) => {
+    if (!confirm("Are you sure?")) return;
+    try {
+      await deleteTestimonial(id);
+      toast({ title: "Deleted", description: "Testimonial deleted" });
+      loadData();
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Failed to delete testimonial", variant: 'destructive' });
+    }
+  };
+
   const filteredProducts = Array.isArray(products)
     ? products.filter((p) =>
       (p.title || p.name || '').toLowerCase().includes(searchQuery.toLowerCase())
@@ -401,6 +489,7 @@ export default function AdminDashboard() {
               { id: 'offers', label: 'Offers', icon: Gift },
               { id: 'orders', label: 'Orders', icon: ShoppingCart },
               { id: 'logs', label: 'Logs', icon: FileText },
+              { id: 'testimonials', label: 'Reviews', icon: FileText }, // Using FileText temporarily as MessageSquare import might need check
               { id: 'settings', label: 'Settings', icon: Settings },
             ].map((tab) => {
               const Icon = tab.icon;
@@ -540,7 +629,18 @@ export default function AdminDashboard() {
                         </Select>
                       </div>
                       <div>
-                        <Label>Price</Label>
+                        <Label>Size</Label>
+                        <Input
+                          value={productForm.size}
+                          onChange={(e) => setProductForm({ ...productForm, size: e.target.value })}
+                          placeholder="e.g. 50g, Pack of 3"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label>Price (Selling)</Label>
                         <Input
                           type="number"
                           step="0.01"
@@ -549,9 +649,15 @@ export default function AdminDashboard() {
                           required
                         />
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>MRP</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={productForm.mrp}
+                          onChange={(e) => setProductForm({ ...productForm, mrp: e.target.value })}
+                        />
+                      </div>
                       <div>
                         <Label>Stock</Label>
                         <Input
@@ -562,32 +668,51 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
+                    <div className="space-y-2">
+                      <Label>Bullet Points (5 Points)</Label>
+                      {productForm.bulletPoints.map((point, index) => (
+                        <Input
+                          key={index}
+                          value={point}
+                          onChange={(e) => {
+                            const newPoints = [...productForm.bulletPoints];
+                            newPoints[index] = e.target.value;
+                            setProductForm({ ...productForm, bulletPoints: newPoints });
+                          }}
+                          placeholder={`Benefit / Feature ${index + 1}`}
+                          className="mb-2"
+                        />
+                      ))}
+                    </div>
+
                     <div>
-                      <Label>Image</Label>
-                      <div className="flex gap-3 items-start">
-                        <div className="flex-1">
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                setImageFile(file);
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                  setImagePreview(reader.result);
-                                };
-                                reader.readAsDataURL(file);
-                              }
-                            }}
-                          />
-                        </div>
-                        {imagePreview && (
-                          <img
-                            src={imagePreview}
-                            alt="Preview"
-                            className="w-20 h-20 object-cover rounded border"
-                          />
+                      <Label>Images</Label>
+                      <div className="space-y-4">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            if (files.length > 0) {
+                              setImageFiles((prev) => [...prev, ...files]);
+                              const newPreviews = files.map((file) => URL.createObjectURL(file));
+                              setImagePreviews((prev) => [...prev, ...newPreviews]);
+                            }
+                          }}
+                        />
+                        {imagePreviews.length > 0 && (
+                          <div className="flex gap-2 flex-wrap">
+                            {imagePreviews.map((src, idx) => (
+                              <div key={idx} className="relative w-20 h-20">
+                                <img
+                                  src={src}
+                                  alt={`Preview ${idx}`}
+                                  className="w-full h-full object-cover rounded border"
+                                />
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -628,12 +753,21 @@ export default function AdminDashboard() {
                   <Card key={product._id}>
                     <CardContent className="pt-6">
                       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{product.title || product.name}</h3>
-                          <p className="text-sm text-muted-foreground">{product.brand}</p>
-                          <div className="flex gap-3 mt-2">
-                            <Badge>₹{product.price}</Badge>
-                            <Badge variant="outline">Stock: {product.stock || 0}</Badge>
+                        <div className="flex-1 flex gap-4">
+                          {product.image && (
+                            <img
+                              src={product.image}
+                              alt={product.title}
+                              className="w-16 h-16 object-cover rounded-md border"
+                            />
+                          )}
+                          <div>
+                            <h3 className="font-semibold">{product.title || product.name}</h3>
+                            <p className="text-sm text-muted-foreground">{product.brand}</p>
+                            <div className="flex gap-3 mt-2">
+                              <Badge>₹{product.price}</Badge>
+                              <Badge variant="outline">Stock: {product.stock || 0}</Badge>
+                            </div>
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -1067,6 +1201,148 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* Testimonials (Reviews) Tab */}
+        {activeTab === 'testimonials' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold">Manage Featured Reviews</h2>
+              <Dialog open={isTestimonialDialogOpen} onOpenChange={setIsTestimonialDialogOpen}>
+                <Button onClick={() => {
+                  setTestimonialForm({ name: '', role: 'Verified Customer', content: '', rating: 5 });
+                  setTestimonialImage(null);
+                  setTestimonialImagePreview('');
+                  setEditingTestimonial(null);
+                  setIsTestimonialDialogOpen(true);
+                }}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Review
+                </Button>
+                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>{editingTestimonial ? 'Edit Review' : 'Add New Review'}</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleSaveTestimonial} className="space-y-4">
+                    <div>
+                      <Label>Customer Name</Label>
+                      <Input
+                        value={testimonialForm.name}
+                        onChange={(e) => setTestimonialForm({ ...testimonialForm, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label>Role / Badge</Label>
+                      <Input
+                        value={testimonialForm.role}
+                        onChange={(e) => setTestimonialForm({ ...testimonialForm, role: e.target.value })}
+                        placeholder="Verified Customer"
+                      />
+                    </div>
+                    <div>
+                      <Label>Rating</Label>
+                      <Select
+                        value={String(testimonialForm.rating)}
+                        onValueChange={(val) => setTestimonialForm({ ...testimonialForm, rating: Number(val) })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[1, 2, 3, 4, 5].map(r => (
+                            <SelectItem key={r} value={String(r)}>{r} Stars</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Review Content</Label>
+                      <Textarea
+                        value={testimonialForm.content}
+                        onChange={(e) => setTestimonialForm({ ...testimonialForm, content: e.target.value })}
+                        required
+                        maxLength={500}
+                      />
+                    </div>
+                    <div>
+                      <Label>Profile Picture (Optional)</Label>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            setTestimonialImage(file);
+                            setTestimonialImagePreview(URL.createObjectURL(file));
+                          }
+                        }}
+                      />
+                      {testimonialImagePreview && (
+                        <div className="mt-2 w-16 h-16 rounded-full overflow-hidden border">
+                          <img src={testimonialImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                    </div>
+                    <Button type="submit" className="w-full">
+                      {editingTestimonial ? 'Update Review' : 'Add Review'}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="grid gap-4">
+              {testimonials.length === 0 ? (
+                <Card className="p-8 text-center text-muted-foreground">No featured reviews yet.</Card>
+              ) : (
+                testimonials.map((t) => (
+                  <Card key={t._id}>
+                    <CardContent className="pt-6">
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex gap-4">
+                          <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                            {t.image ? (
+                              <img src={t.image} alt={t.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center font-bold text-gray-400">
+                                {t.name[0]}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold">{t.name}</h3>
+                            <p className="text-xs text-green-600 font-medium mb-1">{t.role}</p>
+                            <div className="flex text-yellow-500 mb-2">
+                              {Array.from({ length: t.rating }).map((_, i) => (
+                                <svg key={i} className="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" /></svg>
+                              ))}
+                            </div>
+                            <p className="text-sm text-muted-foreground">"{t.content}"</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => {
+                            setEditingTestimonial(t);
+                            setTestimonialForm({
+                              name: t.name,
+                              role: t.role,
+                              content: t.content,
+                              rating: t.rating
+                            });
+                            setTestimonialImagePreview(t.image || '');
+                            setTestimonialImage(null);
+                            setIsTestimonialDialogOpen(true);
+                          }}>Edit</Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleDeleteTestimonial(t._id)}>Delete</Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <div className="space-y-6">
@@ -1113,6 +1389,6 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 }

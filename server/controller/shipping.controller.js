@@ -5,13 +5,14 @@ const asyncHandler = require("../middlewares/asyncHandler");
 exports.getShippingSettings = asyncHandler(async (req, res) => {
   try {
     let settings = await ShippingSettings.findOne({}).lean();
-    
+
     // If no settings exist, create default ones
     if (!settings) {
       settings = {
         shippingCost: 0,
         freeShippingThreshold: null,
-        description: "Standard shipping applied to all orders"
+        description: "Standard shipping applied to all orders",
+        codEnabled: true
       };
     }
 
@@ -31,7 +32,7 @@ exports.getShippingSettings = asyncHandler(async (req, res) => {
 // Update shipping settings (admin only)
 exports.updateShippingSettings = asyncHandler(async (req, res) => {
   try {
-    const { shippingCost, freeShippingThreshold, description } = req.body;
+    const { shippingCost, freeShippingThreshold, description, codEnabled } = req.body;
 
     // Validate inputs
     if (shippingCost !== undefined && (shippingCost < 0 || isNaN(shippingCost))) {
@@ -50,7 +51,7 @@ exports.updateShippingSettings = asyncHandler(async (req, res) => {
 
     // Find and update or create new settings
     let settings = await ShippingSettings.findOne({});
-    
+
     if (!settings) {
       settings = new ShippingSettings();
     }
@@ -58,6 +59,7 @@ exports.updateShippingSettings = asyncHandler(async (req, res) => {
     settings.shippingCost = shippingCost !== undefined ? shippingCost : settings.shippingCost;
     settings.freeShippingThreshold = freeShippingThreshold !== undefined ? freeShippingThreshold : settings.freeShippingThreshold;
     settings.description = description !== undefined ? description : settings.description;
+    settings.codEnabled = codEnabled !== undefined ? codEnabled : settings.codEnabled;
     settings.lastUpdatedBy = req.user?.id;
 
     await settings.save();

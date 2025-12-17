@@ -22,6 +22,12 @@ const shippingSettingsSchema = new mongoose.Schema(
       default: "Standard shipping applied to all orders"
     },
 
+    // Whether Cash on Delivery is enabled
+    codEnabled: {
+      type: Boolean,
+      default: true
+    },
+
     // Last updated timestamp
     lastUpdatedBy: {
       type: mongoose.Schema.Types.ObjectId,
