@@ -290,68 +290,7 @@ exports.createProduct = asyncHandler(async (req, res) => {
 // -----------------------------------------------------
 // Create a new product (ADMIN)
 // -----------------------------------------------------
-exports.createProduct = asyncHandler(async (req, res) => {
-  const { title, description, category, brand, price, stock } = req.body;
-
-  if (!title || !category || !price) {
-    return res.status(400).json({
-      success: false,
-      message: "Title, category and price are required",
-    });
-  }
-
-  const categoryExists = await Category.findById(category);
-  if (!categoryExists) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid category ID",
-    });
-  }
-
-  // Check file
-  if (!req.file) {
-    return res.status(400).json({
-      success: false,
-      message: "Image is required",
-    });
-  }
-
-  // Upload image to Cloudinary
-  const uploadImage = () => {
-    return new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        { folder: "farbetter/products" },
-        (error, result) => {
-          if (result) resolve(result);
-          else reject(error);
-        }
-      );
-      streamifier.createReadStream(req.file.buffer).pipe(stream);
-    });
-  };
-
-  const result = await uploadImage().catch(err => {
-    console.error("Cloudinary upload error:", err);
-    throw err; // re-throw for asyncHandler to catch
-  });
-
-  // Create product
-  const product = await Product.create({
-    title,
-    description,
-    category,
-    brand,
-    price,
-    stock,
-    image: result.secure_url, // URL from Cloudinary
-  });
-
-  res.status(201).json({
-    success: true,
-    message: "Product created successfully",
-    product,
-  });
-});
+// Duplicate createProduct removed. The correct definition is at line 83.
 
 
 // exports.createProduct = asyncHandler(async (req, res) => {
