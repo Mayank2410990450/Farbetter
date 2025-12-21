@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   LayoutDashboard,
   LogOut,
@@ -22,22 +22,22 @@ import {
   Grid3x3,
   ArrowLeft,
   Gift,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import {
   fetchProducts,
   createProduct,
@@ -51,25 +51,25 @@ import {
   updateOrderStatus,
   fetchLogs,
   updatePaymentLogStatus,
-} from '@/api/admin';
+} from "@/api/admin";
 import {
   fetchAllOffers,
   createOffer,
   updateOffer,
   deleteOffer,
-} from '@/api/offer';
+} from "@/api/offer";
 import {
   fetchTestimonials,
   createTestimonial,
   updateTestimonial,
-  deleteTestimonial
-} from '@/api/testimonial';
+  deleteTestimonial,
+} from "@/api/testimonial";
 
 export default function AdminDashboard() {
   const { user, logout, authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [logs, setLogs] = useState([]);
@@ -77,9 +77,9 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [editingOffer, setEditingOffer] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [editingCategory, setEditingCategory] = useState(null);
-  const [categoryForm, setCategoryForm] = useState({ name: '', image: '' });
+  const [categoryForm, setCategoryForm] = useState({ name: "", image: "" });
 
   // Dialog Open States
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
@@ -88,21 +88,21 @@ export default function AdminDashboard() {
 
   // Form states
   const [productForm, setProductForm] = useState({
-    title: '',
-    description: '',
-    category: '',
-    brand: '',
-    price: '',
-    mrp: '',
-    size: '',
-    stock: '',
-    bulletPoints: ['', '', '', '', ''],
+    title: "",
+    description: "",
+    category: "",
+    brand: "",
+    price: "",
+    mrp: "",
+    size: "",
+    stock: "",
+    bulletPoints: ["", "", "", "", ""],
   });
   const [offerForm, setOfferForm] = useState({
-    title: '',
-    description: '',
-    badge: '',
-    backgroundColor: 'bg-gradient-to-r from-blue-500 to-blue-600',
+    title: "",
+    description: "",
+    badge: "",
+    backgroundColor: "bg-gradient-to-r from-blue-500 to-blue-600",
     icon: true,
   });
   /* Existing state declarations */
@@ -111,25 +111,24 @@ export default function AdminDashboard() {
   const [categories, setCategories] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
 
-
   // Testimonial states
   const [isTestimonialDialogOpen, setIsTestimonialDialogOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState(null);
   const [testimonialForm, setTestimonialForm] = useState({
-    name: '',
-    role: 'Verified Customer',
-    content: '',
+    name: "",
+    role: "Verified Customer",
+    content: "",
     rating: 5,
   });
   const [testimonialImage, setTestimonialImage] = useState(null);
-  const [testimonialImagePreview, setTestimonialImagePreview] = useState('');
+  const [testimonialImagePreview, setTestimonialImagePreview] = useState("");
 
   useEffect(() => {
     // Don't redirect while loading - wait for user state to be set/cleared
     if (authLoading) return;
 
-    if (user?.role !== 'admin') {
-      navigate('/admin/login');
+    if (user?.role !== "admin") {
+      navigate("/admin/login");
       return;
     }
     loadData();
@@ -139,7 +138,14 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
 
-      const [productsData, categoriesData, ordersData, logsData, offersData, testimonialsData] = await Promise.all([
+      const [
+        productsData,
+        categoriesData,
+        ordersData,
+        logsData,
+        offersData,
+        testimonialsData,
+      ] = await Promise.all([
         fetchProducts(),
         fetchCategories(),
         fetchOrders(),
@@ -150,12 +156,16 @@ export default function AdminDashboard() {
 
       // Sort orders by timestamp (newest first)
       const sortedOrders = Array.isArray(ordersData)
-        ? [...ordersData].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        ? [...ordersData].sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          )
         : [];
 
       // Sort logs by timestamp (newest first)
       const sortedLogs = Array.isArray(logsData)
-        ? [...logsData].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        ? [...logsData].sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          )
         : [];
 
       setProducts(Array.isArray(productsData) ? productsData : []);
@@ -165,11 +175,11 @@ export default function AdminDashboard() {
       setOffers(Array.isArray(offersData) ? offersData : []);
       setTestimonials(testimonialsData?.testimonials || []);
     } catch (error) {
-      console.error('🔴 AdminDashboard.loadData: Error -', error);
+      console.error("🔴 AdminDashboard.loadData: Error -", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load dashboard data',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load dashboard data",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -178,7 +188,7 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/admin/login');
+    navigate("/admin/login");
   };
 
   const handleAddProduct = async (e) => {
@@ -186,43 +196,46 @@ export default function AdminDashboard() {
     try {
       // Create FormData for file upload
       const formData = new FormData();
-      formData.append('title', productForm.title);
-      formData.append('description', productForm.description);
-      formData.append('category', productForm.category);
-      formData.append('brand', productForm.brand);
-      formData.append('price', productForm.price);
-      formData.append('size', productForm.size);
-      formData.append('mrp', productForm.mrp);
-      formData.append('stock', productForm.stock);
-      formData.append('bulletPoints', JSON.stringify(productForm.bulletPoints.filter(b => b.trim() !== "")));
+      formData.append("title", productForm.title);
+      formData.append("description", productForm.description);
+      formData.append("category", productForm.category);
+      formData.append("brand", productForm.brand);
+      formData.append("price", productForm.price);
+      formData.append("size", productForm.size);
+      formData.append("mrp", productForm.mrp);
+      formData.append("stock", productForm.stock);
+      formData.append(
+        "bulletPoints",
+        JSON.stringify(productForm.bulletPoints.filter((b) => b.trim() !== ""))
+      );
 
       // Append image files if selected
       if (imageFiles.length > 0) {
         imageFiles.forEach((file) => {
-          formData.append('images', file);
+          formData.append("images", file);
         });
       }
 
       if (editingProduct) {
         // Update
         await updateProduct(editingProduct._id, formData);
-        toast({ title: 'Success', description: 'Product updated' });
+        toast({ title: "Success", description: "Product updated" });
       } else {
         // Create
         await createProduct(formData);
-        toast({ title: 'Success', description: 'Product created' });
+        toast({ title: "Success", description: "Product created" });
       }
 
       setProductForm({
-        title: '',
-        description: '',
-        category: '',
-        brand: '',
-        price: '',
-        mrp: '',
-        size: '',
-        stock: '',
-        bulletPoints: ['', '', '', '', ''],
+        title: "",
+        description: "",
+        category: "",
+        brand: "",
+        price: "",
+        mrp: "",
+        size: "",
+        stock: "",
+        bulletPoints: ["", "", "", "", ""],
       });
       setImageFiles([]);
       setImagePreviews([]);
@@ -230,27 +243,27 @@ export default function AdminDashboard() {
       setIsProductDialogOpen(false); // Close dialog
       loadData();
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to save product',
-        variant: 'destructive',
+        title: "Error",
+        description: error.response?.data?.message || "Failed to save product",
+        variant: "destructive",
       });
     }
   };
 
   const handleDeleteProduct = async (id) => {
-    if (!confirm('Are you sure?')) return;
+    if (!confirm("Are you sure?")) return;
     try {
       await deleteProduct(id);
-      toast({ title: 'Success', description: 'Product deleted' });
+      toast({ title: "Success", description: "Product deleted" });
       loadData();
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to delete product',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive",
       });
     }
   };
@@ -263,12 +276,13 @@ export default function AdminDashboard() {
       category: product.category?._id || product.category,
       brand: product.brand,
       price: product.price,
-      mrp: product.mrp || '',
-      size: product.size || '',
+      mrp: product.mrp || "",
+      size: product.size || "",
       stock: product.stock,
-      bulletPoints: (product.bulletPoints && product.bulletPoints.length > 0)
-        ? [...product.bulletPoints, ...Array(5).fill('')].slice(0, 5)
-        : ['', '', '', '', ''],
+      bulletPoints:
+        product.bulletPoints && product.bulletPoints.length > 0
+          ? [...product.bulletPoints, ...Array(5).fill("")].slice(0, 5)
+          : ["", "", "", "", ""],
     });
     setImageFiles([]);
     if (product.images && product.images.length > 0) {
@@ -284,14 +298,14 @@ export default function AdminDashboard() {
   const handleUpdateOrderStatus = async (orderId, status) => {
     try {
       await updateOrderStatus(orderId, status);
-      toast({ title: 'Success', description: 'Order status updated' });
+      toast({ title: "Success", description: "Order status updated" });
       loadData();
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update order',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update order",
+        variant: "destructive",
       });
     }
   };
@@ -300,44 +314,54 @@ export default function AdminDashboard() {
     e.preventDefault();
     try {
       if (!categoryForm.name.trim()) {
-        toast({ title: 'Error', description: 'Category name is required', variant: 'destructive' });
+        toast({
+          title: "Error",
+          description: "Category name is required",
+          variant: "destructive",
+        });
         return;
       }
 
       if (editingCategory) {
-        await updateCategory(editingCategory, { name: categoryForm.name, image: categoryForm.image });
-        toast({ title: 'Success', description: 'Category updated' });
+        await updateCategory(editingCategory, {
+          name: categoryForm.name,
+          image: categoryForm.image,
+        });
+        toast({ title: "Success", description: "Category updated" });
       } else {
-        await createCategory({ name: categoryForm.name, image: categoryForm.image });
-        toast({ title: 'Success', description: 'Category created' });
+        await createCategory({
+          name: categoryForm.name,
+          image: categoryForm.image,
+        });
+        toast({ title: "Success", description: "Category created" });
       }
 
-      setCategoryForm({ name: '', image: '' });
+      setCategoryForm({ name: "", image: "" });
       setEditingCategory(null);
       setIsCategoryDialogOpen(false);
       loadData();
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to save category',
-        variant: 'destructive',
+        title: "Error",
+        description: error.response?.data?.message || "Failed to save category",
+        variant: "destructive",
       });
     }
   };
 
   const handleDeleteCategory = async (id) => {
-    if (!confirm('Are you sure you want to delete this category?')) return;
+    if (!confirm("Are you sure you want to delete this category?")) return;
     try {
       await deleteCategory(id);
-      toast({ title: 'Success', description: 'Category deleted' });
+      toast({ title: "Success", description: "Category deleted" });
       loadData();
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to delete category',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete category",
+        variant: "destructive",
       });
     }
   };
@@ -346,45 +370,55 @@ export default function AdminDashboard() {
     e.preventDefault();
     try {
       if (!offerForm.title.trim() || !offerForm.description.trim()) {
-        toast({ title: 'Error', description: 'Title and description are required', variant: 'destructive' });
+        toast({
+          title: "Error",
+          description: "Title and description are required",
+          variant: "destructive",
+        });
         return;
       }
 
       if (editingOffer) {
         await updateOffer(editingOffer, offerForm);
-        toast({ title: 'Success', description: 'Offer updated' });
+        toast({ title: "Success", description: "Offer updated" });
       } else {
         await createOffer(offerForm);
-        toast({ title: 'Success', description: 'Offer created' });
+        toast({ title: "Success", description: "Offer created" });
       }
 
-      setOfferForm({ title: '', description: '', badge: '', backgroundColor: 'bg-gradient-to-r from-blue-500 to-blue-600', icon: true });
+      setOfferForm({
+        title: "",
+        description: "",
+        badge: "",
+        backgroundColor: "bg-gradient-to-r from-blue-500 to-blue-600",
+        icon: true,
+      });
       setEditingOffer(null);
       setIsOfferDialogOpen(false); // Close dialog
       loadData();
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to save offer',
-        variant: 'destructive',
+        title: "Error",
+        description: error.response?.data?.message || "Failed to save offer",
+        variant: "destructive",
       });
     }
   };
 
   const handleDeleteOffer = async (id) => {
-    if (!confirm('Are you sure you want to delete this offer?')) return;
+    if (!confirm("Are you sure you want to delete this offer?")) return;
 
     try {
       await deleteOffer(id);
-      toast({ title: 'Success', description: 'Offer deleted' });
+      toast({ title: "Success", description: "Offer deleted" });
       loadData();
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to delete offer',
-        variant: 'destructive',
+        title: "Error",
+        description: error.response?.data?.message || "Failed to delete offer",
+        variant: "destructive",
       });
     }
   };
@@ -393,30 +427,39 @@ export default function AdminDashboard() {
     e.preventDefault();
     try {
       const formData = new FormData();
-      formData.append('name', testimonialForm.name);
-      formData.append('role', testimonialForm.role);
-      formData.append('content', testimonialForm.content);
-      formData.append('rating', testimonialForm.rating);
+      formData.append("name", testimonialForm.name);
+      formData.append("role", testimonialForm.role);
+      formData.append("content", testimonialForm.content);
+      formData.append("rating", testimonialForm.rating);
       if (testimonialImage) {
-        formData.append('image', testimonialImage);
+        formData.append("image", testimonialImage);
       }
 
       if (editingTestimonial) {
         await updateTestimonial(editingTestimonial._id, formData);
-        toast({ title: 'Success', description: 'Testimonial updated' });
+        toast({ title: "Success", description: "Testimonial updated" });
       } else {
         await createTestimonial(formData);
-        toast({ title: 'Success', description: 'Testimonial created' });
+        toast({ title: "Success", description: "Testimonial created" });
       }
       setIsTestimonialDialogOpen(false);
-      setTestimonialForm({ name: '', role: 'Verified Customer', content: '', rating: 5 });
+      setTestimonialForm({
+        name: "",
+        role: "Verified Customer",
+        content: "",
+        rating: 5,
+      });
       setTestimonialImage(null);
-      setTestimonialImagePreview('');
+      setTestimonialImagePreview("");
       setEditingTestimonial(null);
       loadData();
     } catch (err) {
       console.error(err);
-      toast({ title: 'Error', description: 'Failed to save testimonial', variant: 'destructive' });
+      toast({
+        title: "Error",
+        description: "Failed to save testimonial",
+        variant: "destructive",
+      });
     }
   };
 
@@ -428,14 +471,20 @@ export default function AdminDashboard() {
       loadData();
     } catch (err) {
       console.error(err);
-      toast({ title: "Error", description: "Failed to delete testimonial", variant: 'destructive' });
+      toast({
+        title: "Error",
+        description: "Failed to delete testimonial",
+        variant: "destructive",
+      });
     }
   };
 
   const filteredProducts = Array.isArray(products)
     ? products.filter((p) =>
-      (p.title || p.name || '').toLowerCase().includes(searchQuery.toLowerCase())
-    )
+        (p.title || p.name || "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
+      )
     : [];
 
   // Overview tab stats
@@ -464,11 +513,15 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold">Admin Dashboard</h1>
-              <p className="text-sm text-muted-foreground hidden sm:block">Manage your store</p>
+              <p className="text-sm text-muted-foreground hidden sm:block">
+                Manage your store
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm font-medium hidden sm:inline">{user?.email}</span>
+            <span className="text-sm font-medium hidden sm:inline">
+              {user?.email}
+            </span>
             <Button onClick={handleLogout} variant="outline" size="sm">
               <LogOut className="w-4 h-4 mr-2" />
               <span className="hidden sm:inline">Logout</span>
@@ -483,24 +536,25 @@ export default function AdminDashboard() {
         <div className="container mx-auto px-4">
           <div className="flex gap-6 overflow-x-auto">
             {[
-              { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-              { id: 'products', label: 'Products', icon: Package },
-              { id: 'categories', label: 'Categories', icon: Grid3x3 },
-              { id: 'offers', label: 'Offers', icon: Gift },
-              { id: 'orders', label: 'Orders', icon: ShoppingCart },
-              { id: 'logs', label: 'Logs', icon: FileText },
-              { id: 'testimonials', label: 'Reviews', icon: FileText }, // Using FileText temporarily as MessageSquare import might need check
-              { id: 'settings', label: 'Settings', icon: Settings },
+              { id: "overview", label: "Overview", icon: LayoutDashboard },
+              { id: "products", label: "Products", icon: Package },
+              { id: "categories", label: "Categories", icon: Grid3x3 },
+              { id: "offers", label: "Offers", icon: Gift },
+              { id: "orders", label: "Orders", icon: ShoppingCart },
+              { id: "logs", label: "Logs", icon: FileText },
+              { id: "testimonials", label: "Reviews", icon: FileText }, // Using FileText temporarily as MessageSquare import might need check
+              { id: "settings", label: "Settings", icon: Settings },
             ].map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-4 border-b-2 font-medium text-base transition flex items-center gap-2 whitespace-nowrap ${activeTab === tab.id
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                    }`}
+                  className={`px-4 py-4 border-b-2 font-medium text-base transition flex items-center gap-2 whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
                 >
                   <Icon className="w-5 h-5" />
                   {tab.label}
@@ -514,7 +568,7 @@ export default function AdminDashboard() {
       {/* Content */}
       <div className="container mx-auto p-4 sm:p-6">
         {/* Overview Tab */}
-        {activeTab === 'overview' && (
+        {activeTab === "overview" && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
@@ -525,8 +579,12 @@ export default function AdminDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl sm:text-4xl font-bold">{totalProducts}</div>
-                  <p className="text-sm text-muted-foreground">Active products</p>
+                  <div className="text-3xl sm:text-4xl font-bold">
+                    {totalProducts}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Active products
+                  </p>
                 </CardContent>
               </Card>
 
@@ -538,7 +596,9 @@ export default function AdminDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl sm:text-4xl font-bold">{totalOrders}</div>
+                  <div className="text-3xl sm:text-4xl font-bold">
+                    {totalOrders}
+                  </div>
                   <p className="text-sm text-muted-foreground">All orders</p>
                 </CardContent>
               </Card>
@@ -551,8 +611,12 @@ export default function AdminDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl sm:text-4xl font-bold">₹{totalRevenue.toFixed(2)}</div>
-                  <p className="text-sm text-muted-foreground">From all orders</p>
+                  <div className="text-3xl sm:text-4xl font-bold">
+                    ₹{totalRevenue.toFixed(2)}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    From all orders
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -562,15 +626,18 @@ export default function AdminDashboard() {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="flex gap-3 flex-wrap">
-                <Button onClick={() => setActiveTab('products')}>
+                <Button onClick={() => setActiveTab("products")}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add Product
                 </Button>
-                <Button variant="outline" onClick={() => setActiveTab('orders')}>
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveTab("orders")}
+                >
                   <ShoppingCart className="w-4 h-4 mr-2" />
                   View Orders
                 </Button>
-                <Button variant="outline" onClick={() => setActiveTab('logs')}>
+                <Button variant="outline" onClick={() => setActiveTab("logs")}>
                   <FileText className="w-4 h-4 mr-2" />
                   View Logs
                 </Button>
@@ -580,18 +647,28 @@ export default function AdminDashboard() {
         )}
 
         {/* Products Tab */}
-        {activeTab === 'products' && (
+        {activeTab === "products" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold">Products Management</h2>
-              <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-                <Button onClick={() => { setEditingProduct(null); setIsProductDialogOpen(true); }}>
+              <Dialog
+                open={isProductDialogOpen}
+                onOpenChange={setIsProductDialogOpen}
+              >
+                <Button
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setIsProductDialogOpen(true);
+                  }}
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Product
                 </Button>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>{editingProduct ? 'Edit' : 'Add'} Product</DialogTitle>
+                    <DialogTitle>
+                      {editingProduct ? "Edit" : "Add"} Product
+                    </DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleAddProduct} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -599,7 +676,12 @@ export default function AdminDashboard() {
                         <Label>Title</Label>
                         <Input
                           value={productForm.title}
-                          onChange={(e) => setProductForm({ ...productForm, title: e.target.value })}
+                          onChange={(e) =>
+                            setProductForm({
+                              ...productForm,
+                              title: e.target.value,
+                            })
+                          }
                           required
                         />
                       </div>
@@ -607,7 +689,12 @@ export default function AdminDashboard() {
                         <Label>Brand</Label>
                         <Input
                           value={productForm.brand}
-                          onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
+                          onChange={(e) =>
+                            setProductForm({
+                              ...productForm,
+                              brand: e.target.value,
+                            })
+                          }
                         />
                       </div>
                     </div>
@@ -615,16 +702,22 @@ export default function AdminDashboard() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label>Category</Label>
-                        <Select value={productForm.category} onValueChange={(val) => setProductForm({ ...productForm, category: val })}>
+                        <Select
+                          value={productForm.category}
+                          onValueChange={(val) =>
+                            setProductForm({ ...productForm, category: val })
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
                           <SelectContent>
-                            {Array.isArray(categories) && categories.map((cat) => (
-                              <SelectItem key={cat._id} value={cat._id}>
-                                {cat.name}
-                              </SelectItem>
-                            ))}
+                            {Array.isArray(categories) &&
+                              categories.map((cat) => (
+                                <SelectItem key={cat._id} value={cat._id}>
+                                  {cat.name}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -632,7 +725,12 @@ export default function AdminDashboard() {
                         <Label>Size</Label>
                         <Input
                           value={productForm.size}
-                          onChange={(e) => setProductForm({ ...productForm, size: e.target.value })}
+                          onChange={(e) =>
+                            setProductForm({
+                              ...productForm,
+                              size: e.target.value,
+                            })
+                          }
                           placeholder="e.g. 50g, Pack of 3"
                         />
                       </div>
@@ -645,7 +743,12 @@ export default function AdminDashboard() {
                           type="number"
                           step="0.01"
                           value={productForm.price}
-                          onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
+                          onChange={(e) =>
+                            setProductForm({
+                              ...productForm,
+                              price: e.target.value,
+                            })
+                          }
                           required
                         />
                       </div>
@@ -655,7 +758,12 @@ export default function AdminDashboard() {
                           type="number"
                           step="0.01"
                           value={productForm.mrp}
-                          onChange={(e) => setProductForm({ ...productForm, mrp: e.target.value })}
+                          onChange={(e) =>
+                            setProductForm({
+                              ...productForm,
+                              mrp: e.target.value,
+                            })
+                          }
                         />
                       </div>
                       <div>
@@ -663,7 +771,12 @@ export default function AdminDashboard() {
                         <Input
                           type="number"
                           value={productForm.stock}
-                          onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
+                          onChange={(e) =>
+                            setProductForm({
+                              ...productForm,
+                              stock: e.target.value,
+                            })
+                          }
                         />
                       </div>
                     </div>
@@ -677,7 +790,10 @@ export default function AdminDashboard() {
                           onChange={(e) => {
                             const newPoints = [...productForm.bulletPoints];
                             newPoints[index] = e.target.value;
-                            setProductForm({ ...productForm, bulletPoints: newPoints });
+                            setProductForm({
+                              ...productForm,
+                              bulletPoints: newPoints,
+                            });
                           }}
                           placeholder={`Benefit / Feature ${index + 1}`}
                           className="mb-2"
@@ -696,8 +812,13 @@ export default function AdminDashboard() {
                             const files = Array.from(e.target.files || []);
                             if (files.length > 0) {
                               setImageFiles((prev) => [...prev, ...files]);
-                              const newPreviews = files.map((file) => URL.createObjectURL(file));
-                              setImagePreviews((prev) => [...prev, ...newPreviews]);
+                              const newPreviews = files.map((file) =>
+                                URL.createObjectURL(file)
+                              );
+                              setImagePreviews((prev) => [
+                                ...prev,
+                                ...newPreviews,
+                              ]);
                             }
                           }}
                         />
@@ -710,6 +831,21 @@ export default function AdminDashboard() {
                                   alt={`Preview ${idx}`}
                                   className="w-full h-full object-cover rounded border"
                                 />
+                                {/* Remove button */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setImagePreviews((prev) =>
+                                      prev.filter((_, i) => i !== idx)
+                                    );
+                                    setImageFiles((prev) =>
+                                      prev.filter((_, i) => i !== idx)
+                                    );
+                                  }}
+                                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                                >
+                                  ×
+                                </button>
                               </div>
                             ))}
                           </div>
@@ -721,13 +857,18 @@ export default function AdminDashboard() {
                       <Label>Description</Label>
                       <Textarea
                         value={productForm.description}
-                        onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+                        onChange={(e) =>
+                          setProductForm({
+                            ...productForm,
+                            description: e.target.value,
+                          })
+                        }
                         rows={4}
                       />
                     </div>
 
                     <Button type="submit" className="w-full">
-                      {editingProduct ? 'Update' : 'Create'} Product
+                      {editingProduct ? "Update" : "Create"} Product
                     </Button>
                   </form>
                 </DialogContent>
@@ -762,11 +903,17 @@ export default function AdminDashboard() {
                             />
                           )}
                           <div>
-                            <h3 className="font-semibold">{product.title || product.name}</h3>
-                            <p className="text-sm text-muted-foreground">{product.brand}</p>
+                            <h3 className="font-semibold">
+                              {product.title || product.name}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {product.brand}
+                            </p>
                             <div className="flex gap-3 mt-2">
                               <Badge>₹{product.price}</Badge>
-                              <Badge variant="outline">Stock: {product.stock || 0}</Badge>
+                              <Badge variant="outline">
+                                Stock: {product.stock || 0}
+                              </Badge>
                             </div>
                           </div>
                         </div>
@@ -776,7 +923,7 @@ export default function AdminDashboard() {
                             variant="outline"
                             onClick={() => {
                               handleEditProduct(product);
-                              setActiveTab('products');
+                              setActiveTab("products");
                             }}
                           >
                             <Edit2 className="w-4 h-4" />
@@ -799,30 +946,49 @@ export default function AdminDashboard() {
         )}
 
         {/* Offers Tab */}
-        {activeTab === 'offers' && (
+        {activeTab === "offers" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold">Offers</h2>
-              <Dialog open={isOfferDialogOpen} onOpenChange={setIsOfferDialogOpen}>
-                <Button onClick={() => {
-                  setOfferForm({ title: '', description: '', badge: '', backgroundColor: 'bg-gradient-to-r from-blue-500 to-blue-600', icon: true });
-                  setEditingOffer(null);
-                  setIsOfferDialogOpen(true);
-                }}>
+              <Dialog
+                open={isOfferDialogOpen}
+                onOpenChange={setIsOfferDialogOpen}
+              >
+                <Button
+                  onClick={() => {
+                    setOfferForm({
+                      title: "",
+                      description: "",
+                      badge: "",
+                      backgroundColor:
+                        "bg-gradient-to-r from-blue-500 to-blue-600",
+                      icon: true,
+                    });
+                    setEditingOffer(null);
+                    setIsOfferDialogOpen(true);
+                  }}
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Offer
                 </Button>
                 <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>{editingOffer ? 'Edit Offer' : 'Add New Offer'}</DialogTitle>
+                    <DialogTitle>
+                      {editingOffer ? "Edit Offer" : "Add New Offer"}
+                    </DialogTitle>
                   </DialogHeader>
-                  <form onSubmit={(e) => handleSaveOffer(e)} className="space-y-4">
+                  <form
+                    onSubmit={(e) => handleSaveOffer(e)}
+                    className="space-y-4"
+                  >
                     <div>
                       <Label>Title</Label>
                       <Input
                         placeholder="e.g., Free Shipping"
                         value={offerForm.title}
-                        onChange={(e) => setOfferForm({ ...offerForm, title: e.target.value })}
+                        onChange={(e) =>
+                          setOfferForm({ ...offerForm, title: e.target.value })
+                        }
                         required
                       />
                     </div>
@@ -831,7 +997,12 @@ export default function AdminDashboard() {
                       <Input
                         placeholder="e.g., On Orders Above ₹599"
                         value={offerForm.description}
-                        onChange={(e) => setOfferForm({ ...offerForm, description: e.target.value })}
+                        onChange={(e) =>
+                          setOfferForm({
+                            ...offerForm,
+                            description: e.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
@@ -840,7 +1011,9 @@ export default function AdminDashboard() {
                       <Input
                         placeholder="e.g., FREE SHIPPING"
                         value={offerForm.badge}
-                        onChange={(e) => setOfferForm({ ...offerForm, badge: e.target.value })}
+                        onChange={(e) =>
+                          setOfferForm({ ...offerForm, badge: e.target.value })
+                        }
                         required
                       />
                     </div>
@@ -849,7 +1022,12 @@ export default function AdminDashboard() {
                       <Input
                         placeholder="e.g., bg-gradient-to-r from-blue-500 to-blue-600"
                         value={offerForm.backgroundColor}
-                        onChange={(e) => setOfferForm({ ...offerForm, backgroundColor: e.target.value })}
+                        onChange={(e) =>
+                          setOfferForm({
+                            ...offerForm,
+                            backgroundColor: e.target.value,
+                          })
+                        }
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -857,13 +1035,15 @@ export default function AdminDashboard() {
                         type="checkbox"
                         id="icon"
                         checked={offerForm.icon}
-                        onChange={(e) => setOfferForm({ ...offerForm, icon: e.target.checked })}
+                        onChange={(e) =>
+                          setOfferForm({ ...offerForm, icon: e.target.checked })
+                        }
                         className="w-4 h-4"
                       />
                       <Label htmlFor="icon">Show Gift Icon</Label>
                     </div>
                     <Button type="submit" className="w-full">
-                      {editingOffer ? 'Update Offer' : 'Create Offer'}
+                      {editingOffer ? "Update Offer" : "Create Offer"}
                     </Button>
                   </form>
                 </DialogContent>
@@ -875,15 +1055,23 @@ export default function AdminDashboard() {
                 offers.map((offer) => (
                   <Card key={offer._id} className="border">
                     <CardContent className="pt-6">
-                      <div className={`${offer.backgroundColor} text-white p-6 rounded mb-4 flex flex-col sm:flex-row items-center justify-between gap-4`}>
+                      <div
+                        className={`${offer.backgroundColor} text-white p-6 rounded mb-4 flex flex-col sm:flex-row items-center justify-between gap-4`}
+                      >
                         <div className="flex items-center gap-3">
                           {offer.icon && <Gift className="h-5 w-5" />}
                           <div>
-                            <div className="font-bold text-lg">{offer.title}</div>
-                            <div className="text-sm opacity-90">{offer.description}</div>
+                            <div className="font-bold text-lg">
+                              {offer.title}
+                            </div>
+                            <div className="text-sm opacity-90">
+                              {offer.description}
+                            </div>
                           </div>
                         </div>
-                        <Badge className="bg-white text-black">{offer.badge}</Badge>
+                        <Badge className="bg-white text-black">
+                          {offer.badge}
+                        </Badge>
                       </div>
                       <div className="flex gap-2">
                         <Button
@@ -917,14 +1105,16 @@ export default function AdminDashboard() {
                   </Card>
                 ))
               ) : (
-                <p className="text-center text-muted-foreground py-8">No offers yet. Create one to get started!</p>
+                <p className="text-center text-muted-foreground py-8">
+                  No offers yet. Create one to get started!
+                </p>
               )}
             </div>
           </div>
         )}
 
         {/* Orders Tab */}
-        {activeTab === 'orders' && (
+        {activeTab === "orders" && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold">Orders Management</h2>
             <div className="grid gap-4">
@@ -938,38 +1128,48 @@ export default function AdminDashboard() {
                     <CardContent className="pt-6">
                       <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
                         <div className="flex-1">
-                          <p className="font-semibold">Order #{order._id?.slice(-8)}</p>
-                          <p className="text-sm text-muted-foreground">
-                            User: {order.user?.name || 'Unknown'}
+                          <p className="font-semibold">
+                            Order #{order._id?.slice(-8)}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Total: ₹{order.totalAmount?.toFixed(2) || '0.00'}
+                            User: {order.user?.name || "Unknown"}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Total: ₹{order.totalAmount?.toFixed(2) || "0.00"}
                           </p>
                         </div>
                         <div className="flex items-center gap-3">
                           <Badge
                             variant={
-                              order.orderStatus === 'delivered'
-                                ? 'default'
-                                : order.orderStatus === 'shipped'
-                                  ? 'secondary'
-                                  : 'outline'
+                              order.orderStatus === "delivered"
+                                ? "default"
+                                : order.orderStatus === "shipped"
+                                ? "secondary"
+                                : "outline"
                             }
                           >
                             {order.orderStatus}
                           </Badge>
                           <Select
                             value={order.orderStatus}
-                            onValueChange={(status) => handleUpdateOrderStatus(order._id, status)}
+                            onValueChange={(status) =>
+                              handleUpdateOrderStatus(order._id, status)
+                            }
                           >
                             <SelectTrigger className="w-40">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="processing">Processing</SelectItem>
+                              <SelectItem value="processing">
+                                Processing
+                              </SelectItem>
                               <SelectItem value="shipped">Shipped</SelectItem>
-                              <SelectItem value="delivered">Delivered</SelectItem>
-                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                              <SelectItem value="delivered">
+                                Delivered
+                              </SelectItem>
+                              <SelectItem value="cancelled">
+                                Cancelled
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -980,10 +1180,18 @@ export default function AdminDashboard() {
                         <p className="font-semibold text-sm mb-2">Products:</p>
                         <div className="space-y-2">
                           {order.items?.map((item, idx) => (
-                            <div key={idx} className="bg-muted p-2 rounded text-sm">
-                              <p className="font-medium">{item.product?.title || 'Unknown Product'}</p>
+                            <div
+                              key={idx}
+                              className="bg-muted p-2 rounded text-sm"
+                            >
+                              <p className="font-medium">
+                                {item.product?.title || "Unknown Product"}
+                              </p>
                               <p className="text-xs text-muted-foreground">
-                                Qty: {item.quantity} × ₹{item.price?.toFixed(2) || '0.00'} = ₹{(item.quantity * item.price)?.toFixed(2) || '0.00'}
+                                Qty: {item.quantity} × ₹
+                                {item.price?.toFixed(2) || "0.00"} = ₹
+                                {(item.quantity * item.price)?.toFixed(2) ||
+                                  "0.00"}
                               </p>
                             </div>
                           ))}
@@ -998,91 +1206,128 @@ export default function AdminDashboard() {
         )}
 
         {/* Logs Tab */}
-        {activeTab === 'logs' && (
+        {activeTab === "logs" && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold">Payment & Activity Logs</h2>
             <Card>
               <CardContent className="pt-6">
                 <p className="text-muted-foreground text-center mb-4">
-                  Manage order and payment activities. Update payment status below.
+                  Manage order and payment activities. Update payment status
+                  below.
                 </p>
                 <div className="mt-6 space-y-3">
                   {logs.length === 0 ? (
-                    <p className="text-center text-sm text-muted-foreground">No logs yet</p>
+                    <p className="text-center text-sm text-muted-foreground">
+                      No logs yet
+                    </p>
                   ) : (
                     logs.map((log, idx) => {
                       // normalize shape: payment log vs fallback order-log
                       const logId = log._id;
                       const orderId = log.order?._id || log._id;
-                      const user = log.user?.email || log.user?.name || (log.user && log.user.email) || 'Unknown';
+                      const user =
+                        log.user?.email ||
+                        log.user?.name ||
+                        (log.user && log.user.email) ||
+                        "Unknown";
                       const amount = log.amount || log.order?.totalAmount || 0;
-                      const method = log.paymentMethod || 'COD';
-                      const paymentId = log.paymentId || '—';
-                      const status = log.status || log.orderStatus || 'pending';
-                      const created = log.createdAt ? new Date(log.createdAt).toLocaleString() : '';
+                      const method = log.paymentMethod || "COD";
+                      const paymentId = log.paymentId || "—";
+                      const status = log.status || log.orderStatus || "pending";
+                      const created = log.createdAt
+                        ? new Date(log.createdAt).toLocaleString()
+                        : "";
 
                       // Determine status badge color
                       const getStatusColor = (status) => {
-                        if (status === 'success') return 'bg-green-100 text-green-800 border-green-300';
-                        if (status === 'pending') return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-                        if (status === 'failed') return 'bg-red-100 text-red-800 border-red-300';
-                        if (status === 'refunded') return 'bg-blue-100 text-blue-800 border-blue-300';
-                        return 'bg-gray-100 text-gray-800 border-gray-300';
+                        if (status === "success")
+                          return "bg-green-100 text-green-800 border-green-300";
+                        if (status === "pending")
+                          return "bg-yellow-100 text-yellow-800 border-yellow-300";
+                        if (status === "failed")
+                          return "bg-red-100 text-red-800 border-red-300";
+                        if (status === "refunded")
+                          return "bg-blue-100 text-blue-800 border-blue-300";
+                        return "bg-gray-100 text-gray-800 border-gray-300";
                       };
 
                       // Determine available status options based on current status and method
                       const getAvailableStatuses = (currentStatus, method) => {
-                        if (method === 'COD') {
+                        if (method === "COD") {
                           // COD: pending -> success -> refunded
-                          if (currentStatus === 'pending') return ['pending', 'success', 'failed'];
-                          if (currentStatus === 'success') return ['success', 'refunded'];
-                          if (currentStatus === 'failed') return ['failed', 'pending'];
-                          return ['refunded'];
+                          if (currentStatus === "pending")
+                            return ["pending", "success", "failed"];
+                          if (currentStatus === "success")
+                            return ["success", "refunded"];
+                          if (currentStatus === "failed")
+                            return ["failed", "pending"];
+                          return ["refunded"];
                         } else {
                           // Online payment (Razorpay, Stripe): success -> refunded
-                          if (currentStatus === 'success') return ['success', 'refunded'];
-                          if (currentStatus === 'failed') return ['failed'];
-                          return ['pending', 'success', 'failed'];
+                          if (currentStatus === "success")
+                            return ["success", "refunded"];
+                          if (currentStatus === "failed") return ["failed"];
+                          return ["pending", "success", "failed"];
                         }
                       };
 
-                      const availableStatuses = getAvailableStatuses(status, method);
+                      const availableStatuses = getAvailableStatuses(
+                        status,
+                        method
+                      );
                       const canChangeStatus = availableStatuses.length > 1;
 
                       return (
-                        <div key={idx} className={`p-4 rounded border ${getStatusColor(status)}`}>
+                        <div
+                          key={idx}
+                          className={`p-4 rounded border ${getStatusColor(
+                            status
+                          )}`}
+                        >
                           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                             <div className="flex-1">
-                              <p className="font-semibold text-sm">Order #{String(orderId).slice(-8)}</p>
-                              <p className="text-xs opacity-90">User: {user}</p>
-                              <p className="text-xs opacity-90">Amount: ₹{Number(amount).toFixed(2)}</p>
-                              <p className="text-xs opacity-90">
-                                Method: <span className="font-medium">{method}</span>
-                                {paymentId !== '—' && ` • ID: ${paymentId}`}
+                              <p className="font-semibold text-sm">
+                                Order #{String(orderId).slice(-8)}
                               </p>
-                              <p className="text-xs opacity-75 mt-1">{created}</p>
+                              <p className="text-xs opacity-90">User: {user}</p>
+                              <p className="text-xs opacity-90">
+                                Amount: ₹{Number(amount).toFixed(2)}
+                              </p>
+                              <p className="text-xs opacity-90">
+                                Method:{" "}
+                                <span className="font-medium">{method}</span>
+                                {paymentId !== "—" && ` • ID: ${paymentId}`}
+                              </p>
+                              <p className="text-xs opacity-75 mt-1">
+                                {created}
+                              </p>
                             </div>
                             <div className="text-right">
-                              <p className="text-sm font-semibold mb-2 capitalize">{status}</p>
+                              <p className="text-sm font-semibold mb-2 capitalize">
+                                {status}
+                              </p>
                               {canChangeStatus ? (
                                 <Select
                                   value={status}
                                   onValueChange={async (newStatus) => {
                                     if (newStatus === status) return;
                                     try {
-                                      await updatePaymentLogStatus(logId, newStatus);
+                                      await updatePaymentLogStatus(
+                                        logId,
+                                        newStatus
+                                      );
                                       toast({
-                                        title: 'Success',
-                                        description: `Payment status updated to ${newStatus}`
+                                        title: "Success",
+                                        description: `Payment status updated to ${newStatus}`,
                                       });
                                       // Refresh logs
                                       const updatedLogs = await fetchLogs();
                                       setLogs(updatedLogs);
                                     } catch (err) {
                                       toast({
-                                        title: 'Error',
-                                        description: 'Failed to update status',
-                                        variant: 'destructive'
+                                        title: "Error",
+                                        description: "Failed to update status",
+                                        variant: "destructive",
                                       });
                                     }
                                   }}
@@ -1099,7 +1344,9 @@ export default function AdminDashboard() {
                                   </SelectContent>
                                 </Select>
                               ) : (
-                                <p className="text-xs text-opacity-75">Final Status</p>
+                                <p className="text-xs text-opacity-75">
+                                  Final Status
+                                </p>
                               )}
                             </div>
                           </div>
@@ -1114,22 +1361,29 @@ export default function AdminDashboard() {
         )}
 
         {/* Categories Tab */}
-        {activeTab === 'categories' && (
+        {activeTab === "categories" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold">Categories</h2>
-              <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-                <Button onClick={() => {
-                  setCategoryForm({ name: '', image: '' });
-                  setEditingCategory(null);
-                  setIsCategoryDialogOpen(true);
-                }}>
+              <Dialog
+                open={isCategoryDialogOpen}
+                onOpenChange={setIsCategoryDialogOpen}
+              >
+                <Button
+                  onClick={() => {
+                    setCategoryForm({ name: "", image: "" });
+                    setEditingCategory(null);
+                    setIsCategoryDialogOpen(true);
+                  }}
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Category
                 </Button>
                 <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle>{editingCategory ? 'Edit Category' : 'Add New Category'}</DialogTitle>
+                    <DialogTitle>
+                      {editingCategory ? "Edit Category" : "Add New Category"}
+                    </DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleAddCategory} className="space-y-4">
                     <div>
@@ -1137,7 +1391,12 @@ export default function AdminDashboard() {
                       <Input
                         placeholder="e.g., Protein Bars"
                         value={categoryForm.name}
-                        onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                        onChange={(e) =>
+                          setCategoryForm({
+                            ...categoryForm,
+                            name: e.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
@@ -1146,10 +1405,17 @@ export default function AdminDashboard() {
                       <Input
                         placeholder="https://example.com/image.jpg"
                         value={categoryForm.image}
-                        onChange={(e) => setCategoryForm({ ...categoryForm, image: e.target.value })}
+                        onChange={(e) =>
+                          setCategoryForm({
+                            ...categoryForm,
+                            image: e.target.value,
+                          })
+                        }
                       />
                     </div>
-                    <Button type="submit" className="w-full">{editingCategory ? 'Update' : 'Create'} Category</Button>
+                    <Button type="submit" className="w-full">
+                      {editingCategory ? "Update" : "Create"} Category
+                    </Button>
                   </form>
                 </DialogContent>
               </Dialog>
@@ -1169,13 +1435,18 @@ export default function AdminDashboard() {
                           />
                         )}
                         <h3 className="font-semibold">{cat.name}</h3>
-                        <p className="text-xs text-muted-foreground mb-3">ID: {cat._id}</p>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          ID: {cat._id}
+                        </p>
                         <div className="flex gap-2">
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => {
-                              setCategoryForm({ name: cat.name, image: cat.image || '' });
+                              setCategoryForm({
+                                name: cat.name,
+                                image: cat.image || "",
+                              });
                               setEditingCategory(cat._id);
                               setIsCategoryDialogOpen(true);
                             }}
@@ -1194,7 +1465,9 @@ export default function AdminDashboard() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center text-muted-foreground">No categories yet. Create one to get started!</p>
+                  <p className="text-center text-muted-foreground">
+                    No categories yet. Create one to get started!
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -1202,31 +1475,48 @@ export default function AdminDashboard() {
         )}
 
         {/* Testimonials (Reviews) Tab */}
-        {activeTab === 'testimonials' && (
+        {activeTab === "testimonials" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold">Manage Featured Reviews</h2>
-              <Dialog open={isTestimonialDialogOpen} onOpenChange={setIsTestimonialDialogOpen}>
-                <Button onClick={() => {
-                  setTestimonialForm({ name: '', role: 'Verified Customer', content: '', rating: 5 });
-                  setTestimonialImage(null);
-                  setTestimonialImagePreview('');
-                  setEditingTestimonial(null);
-                  setIsTestimonialDialogOpen(true);
-                }}>
+              <Dialog
+                open={isTestimonialDialogOpen}
+                onOpenChange={setIsTestimonialDialogOpen}
+              >
+                <Button
+                  onClick={() => {
+                    setTestimonialForm({
+                      name: "",
+                      role: "Verified Customer",
+                      content: "",
+                      rating: 5,
+                    });
+                    setTestimonialImage(null);
+                    setTestimonialImagePreview("");
+                    setEditingTestimonial(null);
+                    setIsTestimonialDialogOpen(true);
+                  }}
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Review
                 </Button>
                 <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>{editingTestimonial ? 'Edit Review' : 'Add New Review'}</DialogTitle>
+                    <DialogTitle>
+                      {editingTestimonial ? "Edit Review" : "Add New Review"}
+                    </DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleSaveTestimonial} className="space-y-4">
                     <div>
                       <Label>Customer Name</Label>
                       <Input
                         value={testimonialForm.name}
-                        onChange={(e) => setTestimonialForm({ ...testimonialForm, name: e.target.value })}
+                        onChange={(e) =>
+                          setTestimonialForm({
+                            ...testimonialForm,
+                            name: e.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
@@ -1234,7 +1524,12 @@ export default function AdminDashboard() {
                       <Label>Role / Badge</Label>
                       <Input
                         value={testimonialForm.role}
-                        onChange={(e) => setTestimonialForm({ ...testimonialForm, role: e.target.value })}
+                        onChange={(e) =>
+                          setTestimonialForm({
+                            ...testimonialForm,
+                            role: e.target.value,
+                          })
+                        }
                         placeholder="Verified Customer"
                       />
                     </div>
@@ -1242,14 +1537,21 @@ export default function AdminDashboard() {
                       <Label>Rating</Label>
                       <Select
                         value={String(testimonialForm.rating)}
-                        onValueChange={(val) => setTestimonialForm({ ...testimonialForm, rating: Number(val) })}
+                        onValueChange={(val) =>
+                          setTestimonialForm({
+                            ...testimonialForm,
+                            rating: Number(val),
+                          })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {[1, 2, 3, 4, 5].map(r => (
-                            <SelectItem key={r} value={String(r)}>{r} Stars</SelectItem>
+                          {[1, 2, 3, 4, 5].map((r) => (
+                            <SelectItem key={r} value={String(r)}>
+                              {r} Stars
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -1258,7 +1560,12 @@ export default function AdminDashboard() {
                       <Label>Review Content</Label>
                       <Textarea
                         value={testimonialForm.content}
-                        onChange={(e) => setTestimonialForm({ ...testimonialForm, content: e.target.value })}
+                        onChange={(e) =>
+                          setTestimonialForm({
+                            ...testimonialForm,
+                            content: e.target.value,
+                          })
+                        }
                         required
                         maxLength={500}
                       />
@@ -1272,18 +1579,24 @@ export default function AdminDashboard() {
                           const file = e.target.files[0];
                           if (file) {
                             setTestimonialImage(file);
-                            setTestimonialImagePreview(URL.createObjectURL(file));
+                            setTestimonialImagePreview(
+                              URL.createObjectURL(file)
+                            );
                           }
                         }}
                       />
                       {testimonialImagePreview && (
                         <div className="mt-2 w-16 h-16 rounded-full overflow-hidden border">
-                          <img src={testimonialImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                          <img
+                            src={testimonialImagePreview}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                       )}
                     </div>
                     <Button type="submit" className="w-full">
-                      {editingTestimonial ? 'Update Review' : 'Add Review'}
+                      {editingTestimonial ? "Update Review" : "Add Review"}
                     </Button>
                   </form>
                 </DialogContent>
@@ -1292,7 +1605,9 @@ export default function AdminDashboard() {
 
             <div className="grid gap-4">
               {testimonials.length === 0 ? (
-                <Card className="p-8 text-center text-muted-foreground">No featured reviews yet.</Card>
+                <Card className="p-8 text-center text-muted-foreground">
+                  No featured reviews yet.
+                </Card>
               ) : (
                 testimonials.map((t) => (
                   <Card key={t._id}>
@@ -1301,7 +1616,11 @@ export default function AdminDashboard() {
                         <div className="flex gap-4">
                           <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
                             {t.image ? (
-                              <img src={t.image} alt={t.name} className="w-full h-full object-cover" />
+                              <img
+                                src={t.image}
+                                alt={t.name}
+                                className="w-full h-full object-cover"
+                              />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center font-bold text-gray-400">
                                 {t.name[0]}
@@ -1310,29 +1629,51 @@ export default function AdminDashboard() {
                           </div>
                           <div>
                             <h3 className="font-semibold">{t.name}</h3>
-                            <p className="text-xs text-green-600 font-medium mb-1">{t.role}</p>
+                            <p className="text-xs text-green-600 font-medium mb-1">
+                              {t.role}
+                            </p>
                             <div className="flex text-yellow-500 mb-2">
                               {Array.from({ length: t.rating }).map((_, i) => (
-                                <svg key={i} className="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" /></svg>
+                                <svg
+                                  key={i}
+                                  className="w-3 h-3 fill-current"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                                </svg>
                               ))}
                             </div>
-                            <p className="text-sm text-muted-foreground">"{t.content}"</p>
+                            <p className="text-sm text-muted-foreground">
+                              "{t.content}"
+                            </p>
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => {
-                            setEditingTestimonial(t);
-                            setTestimonialForm({
-                              name: t.name,
-                              role: t.role,
-                              content: t.content,
-                              rating: t.rating
-                            });
-                            setTestimonialImagePreview(t.image || '');
-                            setTestimonialImage(null);
-                            setIsTestimonialDialogOpen(true);
-                          }}>Edit</Button>
-                          <Button size="sm" variant="destructive" onClick={() => handleDeleteTestimonial(t._id)}>Delete</Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingTestimonial(t);
+                              setTestimonialForm({
+                                name: t.name,
+                                role: t.role,
+                                content: t.content,
+                                rating: t.rating,
+                              });
+                              setTestimonialImagePreview(t.image || "");
+                              setTestimonialImage(null);
+                              setIsTestimonialDialogOpen(true);
+                            }}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteTestimonial(t._id)}
+                          >
+                            Delete
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
@@ -1344,7 +1685,7 @@ export default function AdminDashboard() {
         )}
 
         {/* Settings Tab */}
-        {activeTab === 'settings' && (
+        {activeTab === "settings" && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold">Settings</h2>
 
@@ -1355,9 +1696,10 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Manage global shipping costs, thresholds, and free shipping policies
+                  Manage global shipping costs, thresholds, and free shipping
+                  policies
                 </p>
-                <Button onClick={() => navigate('/admin/settings')}>
+                <Button onClick={() => navigate("/admin/settings")}>
                   Configure Shipping
                 </Button>
               </CardContent>
@@ -1371,15 +1713,27 @@ export default function AdminDashboard() {
               <CardContent className="space-y-4">
                 <div>
                   <Label>Email</Label>
-                  <Input value={user?.email} disabled className="disabled:opacity-100 disabled:cursor-default text-foreground font-medium bg-muted/50" />
+                  <Input
+                    value={user?.email}
+                    disabled
+                    className="disabled:opacity-100 disabled:cursor-default text-foreground font-medium bg-muted/50"
+                  />
                 </div>
                 <div>
                   <Label>Name</Label>
-                  <Input value={user?.name} disabled className="disabled:opacity-100 disabled:cursor-default text-foreground font-medium bg-muted/50" />
+                  <Input
+                    value={user?.name}
+                    disabled
+                    className="disabled:opacity-100 disabled:cursor-default text-foreground font-medium bg-muted/50"
+                  />
                 </div>
                 <div>
                   <Label>Role</Label>
-                  <Input value={user?.role} disabled className="disabled:opacity-100 disabled:cursor-default text-foreground font-medium bg-muted/50" />
+                  <Input
+                    value={user?.role}
+                    disabled
+                    className="disabled:opacity-100 disabled:cursor-default text-foreground font-medium bg-muted/50"
+                  />
                 </div>
                 <Button variant="destructive" onClick={handleLogout}>
                   Logout
@@ -1389,6 +1743,6 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
-    </div >
+    </div>
   );
 }

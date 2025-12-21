@@ -78,21 +78,28 @@ export default function About() {
           </section>
 
           {/* Our Values */}
-          <section className="py-8 sm:py-12 lg:py-16 bg-muted/30">
-            <div className="container mx-auto px-4">
-              <h2 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-12 text-center" data-testid="heading-values">Our Values</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {values.map((value, index) => (
-                  <Card key={index} className="p-4 sm:p-6" data-testid={`card-value-${index}`}>
-                    <value.icon className="h-10 sm:h-12 w-10 sm:w-12 text-primary mb-4" />
-                    <h3 className="text-lg sm:text-xl font-semibold mb-3" data-testid={`heading-value-${index}`}>{value.title}</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground" data-testid={`text-value-${index}`}>{value.description}</p>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </section>
-
+    <section className="py-8 sm:py-12 lg:py-16 bg-muted/30">
+      <div className="container mx-auto px-4">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-12 text-center" data-testid="heading-values">
+          Our Values
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {values.map((value, index) => (
+            <Card
+              key={index}
+              className="p-6 sm:p-8 flex flex-col items-center text-center rounded-2xl shadow-md
+                        hover:shadow-lg hover:scale-105 transition-transform transition-shadow duration-300
+                        bg-gradient-to-br from-primary/10 to-secondary/10"
+              data-testid={`card-value-${index}`}
+            >
+              <value.icon className="h-12 w-12 text-primary mb-4" />
+              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-foreground">{value.title}</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">{value.description}</p>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </section>
           {/* Stats */}
           {/* <section className="py-8 sm:py-12 lg:py-16">
           <div className="container mx-auto px-4">
