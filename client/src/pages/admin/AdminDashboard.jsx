@@ -157,15 +157,15 @@ export default function AdminDashboard() {
       // Sort orders by timestamp (newest first)
       const sortedOrders = Array.isArray(ordersData)
         ? [...ordersData].sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-          )
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        )
         : [];
 
       // Sort logs by timestamp (newest first)
       const sortedLogs = Array.isArray(logsData)
         ? [...logsData].sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-          )
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        )
         : [];
 
       setProducts(Array.isArray(productsData) ? productsData : []);
@@ -208,6 +208,10 @@ export default function AdminDashboard() {
         "bulletPoints",
         JSON.stringify(productForm.bulletPoints.filter((b) => b.trim() !== ""))
       );
+
+      // Separate existing images (URLs) from new uploads (Files)
+      const existingImages = imagePreviews.filter((url) => !url.startsWith("blob:"));
+      formData.append("existingImages", JSON.stringify(existingImages));
 
       // Append image files if selected
       if (imageFiles.length > 0) {
@@ -481,10 +485,10 @@ export default function AdminDashboard() {
 
   const filteredProducts = Array.isArray(products)
     ? products.filter((p) =>
-        (p.title || p.name || "")
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())
-      )
+      (p.title || p.name || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+    )
     : [];
 
   // Overview tab stats
@@ -550,11 +554,10 @@ export default function AdminDashboard() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-4 border-b-2 font-medium text-base transition flex items-center gap-2 whitespace-nowrap ${
-                    activeTab === tab.id
+                  className={`px-4 py-4 border-b-2 font-medium text-base transition flex items-center gap-2 whitespace-nowrap ${activeTab === tab.id
                       ? "border-primary text-primary"
                       : "border-transparent text-muted-foreground hover:text-foreground"
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   {tab.label}
@@ -835,12 +838,21 @@ export default function AdminDashboard() {
                                 <button
                                   type="button"
                                   onClick={() => {
+                                    const urlToRemove = imagePreviews[idx];
                                     setImagePreviews((prev) =>
                                       prev.filter((_, i) => i !== idx)
                                     );
-                                    setImageFiles((prev) =>
-                                      prev.filter((_, i) => i !== idx)
-                                    );
+
+                                    // If it's a new file (blob URL), remove it from imageFiles array too
+                                    if (urlToRemove.startsWith("blob:")) {
+                                      const blobsBefore = imagePreviews
+                                        .slice(0, idx)
+                                        .filter((url) => url.startsWith("blob:"))
+                                        .length;
+                                      setImageFiles((prev) =>
+                                        prev.filter((_, i) => i !== blobsBefore)
+                                      );
+                                    }
                                   }}
                                   className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
                                 >
@@ -1144,8 +1156,8 @@ export default function AdminDashboard() {
                               order.orderStatus === "delivered"
                                 ? "default"
                                 : order.orderStatus === "shipped"
-                                ? "secondary"
-                                : "outline"
+                                  ? "secondary"
+                                  : "outline"
                             }
                           >
                             {order.orderStatus}

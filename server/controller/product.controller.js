@@ -411,7 +411,6 @@ exports.getProducts = asyncHandler(async (req, res) => {
   // Base query
   let mongoQuery = Product.find(query)
     .populate("category", "name slug image")
-    .select("title name category brand price images image stock averageRating numReviews slug createdAt")
     .skip((page - 1) * limit)
     .limit(Number(limit));
 
@@ -480,7 +479,33 @@ exports.updateProduct = asyncHandler(async (req, res) => {
     }
   }
 
-  // Handle Image Upload if files exist
+  // Handle Images (Existing + New)
+  let finalImages = [];
+  let imagesUpdated = false;
+
+  // 1. Parse existing images from frontend
+  if (req.body.existingImages) {
+    try {
+      const parsed = JSON.parse(req.body.existingImages);
+      if (Array.isArray(parsed)) {
+        finalImages = parsed;
+        imagesUpdated = true;
+      }
+    } catch (e) {
+      console.error("Error parsing existingImages:", e);
+    }
+  } else if (req.files && req.files.length > 0) {
+    // Fallback: If no existingImages list sent but files uploaded, fetch current to append
+    const currentProduct = await Product.findById(req.params.id);
+    if (currentProduct) {
+      finalImages = currentProduct.images || [];
+      if (finalImages.length === 0 && currentProduct.image) {
+        finalImages = [currentProduct.image];
+      }
+    }
+  }
+
+  // 2. Upload new files
   if (req.files && req.files.length > 0) {
     const uploadPromises = req.files.map(file => {
       return new Promise((resolve, reject) => {
@@ -503,26 +528,8 @@ exports.updateProduct = asyncHandler(async (req, res) => {
 
     try {
       const uploadedUrls = await Promise.all(uploadPromises);
-
-      // Fetch current product to append to images
-      const currentProduct = await Product.findById(req.params.id);
-      if (currentProduct) {
-        let existingImages = currentProduct.images || [];
-        // Migration: treat singular image as first item of images if images array is empty
-        if (existingImages.length === 0 && currentProduct.image) {
-          existingImages = [currentProduct.image];
-        }
-
-        // Append new images to existing ones
-        updates.images = [...existingImages, ...uploadedUrls];
-        if (!currentProduct.image && uploadedUrls.length > 0) {
-          updates.image = uploadedUrls[0];
-        }
-      } else {
-        updates.images = uploadedUrls;
-        if (uploadedUrls.length > 0) updates.image = uploadedUrls[0];
-      }
-
+      finalImages = [...finalImages, ...uploadedUrls];
+      imagesUpdated = true;
     } catch (err) {
       console.error("Cloudinary upload error:", err);
       return res.status(500).json({
@@ -531,6 +538,14 @@ exports.updateProduct = asyncHandler(async (req, res) => {
       });
     }
   }
+
+  // 3. Apply updates
+  if (imagesUpdated) {
+    updates.images = finalImages;
+    updates.image = finalImages.length > 0 ? finalImages[0] : null;
+  }
+
+  delete updates.existingImages;
 
   const product = await Product.findByIdAndUpdate(req.params.id, updates, {
     new: true
