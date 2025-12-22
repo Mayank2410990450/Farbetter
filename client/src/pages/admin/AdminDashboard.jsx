@@ -196,14 +196,14 @@ export default function AdminDashboard() {
     try {
       // Create FormData for file upload
       const formData = new FormData();
-      formData.append("title", productForm.title);
-      formData.append("description", productForm.description);
-      formData.append("category", productForm.category);
-      formData.append("brand", productForm.brand);
-      formData.append("price", productForm.price);
-      formData.append("size", productForm.size);
-      formData.append("mrp", productForm.mrp);
-      formData.append("stock", productForm.stock);
+      formData.append("title", productForm.title || "");
+      formData.append("description", productForm.description || "");
+      formData.append("category", productForm.category || "");
+      formData.append("brand", productForm.brand || "");
+      formData.append("price", productForm.price || "");
+      formData.append("size", productForm.size || "");
+      formData.append("mrp", productForm.mrp || "");
+      formData.append("stock", productForm.stock || "");
       formData.append(
         "bulletPoints",
         JSON.stringify(productForm.bulletPoints.filter((b) => b.trim() !== ""))
@@ -275,14 +275,14 @@ export default function AdminDashboard() {
   const handleEditProduct = (product) => {
     setEditingProduct(product);
     setProductForm({
-      title: product.title || product.name,
-      description: product.description,
-      category: product.category?._id || product.category,
-      brand: product.brand,
-      price: product.price,
-      mrp: product.mrp || "",
+      title: product.title || product.name || "",
+      description: (product.description && product.description !== "undefined") ? product.description : "",
+      category: product.category?._id || product.category || "",
+      brand: product.brand || "",
+      price: product.price !== undefined && product.price !== null ? product.price : "",
+      mrp: product.mrp !== undefined && product.mrp !== null ? product.mrp : "",
       size: product.size || "",
-      stock: product.stock,
+      stock: product.stock !== undefined && product.stock !== null ? product.stock : "",
       bulletPoints:
         product.bulletPoints && product.bulletPoints.length > 0
           ? [...product.bulletPoints, ...Array(5).fill("")].slice(0, 5)
@@ -555,8 +555,8 @@ export default function AdminDashboard() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`px-4 py-4 border-b-2 font-medium text-base transition flex items-center gap-2 whitespace-nowrap ${activeTab === tab.id
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -661,6 +661,19 @@ export default function AdminDashboard() {
                 <Button
                   onClick={() => {
                     setEditingProduct(null);
+                    setProductForm({
+                      title: "",
+                      description: "",
+                      category: "",
+                      brand: "",
+                      price: "",
+                      mrp: "",
+                      size: "",
+                      stock: "",
+                      bulletPoints: ["", "", "", "", ""],
+                    });
+                    setImageFiles([]);
+                    setImagePreviews([]);
                     setIsProductDialogOpen(true);
                   }}
                 >

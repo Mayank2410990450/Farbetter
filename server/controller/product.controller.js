@@ -81,6 +81,8 @@ const streamifier = require("streamifier");
 // Create a new product (ADMIN)
 // -----------------------------------------------------
 exports.createProduct = asyncHandler(async (req, res) => {
+  console.log("createProduct req.body:", req.body);
+  console.log("createProduct req.files:", req.files ? req.files.length : 0);
   const { title, description, category, brand, price, stock, size, mrp, bulletPoints } = req.body;
 
   if (!title || !category || !price) {
