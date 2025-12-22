@@ -130,7 +130,7 @@ export default function ProductCard({
       </div>
 
       {/* Product Image */}
-      <div className="relative overflow-hidden bg-muted cursor-pointer group" onClick={() => navigate(`/product/${pid}`)}>
+      <div className="relative overflow-hidden bg-white cursor-pointer group" onClick={() => navigate(`/product/${pid}`)}>
         <div className="w-full h-48 md:h-56 overflow-hidden">
           <img
             src={optimizedImage}

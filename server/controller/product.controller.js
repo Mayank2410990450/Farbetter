@@ -116,8 +116,11 @@ exports.createProduct = asyncHandler(async (req, res) => {
         const stream = cloudinary.uploader.upload_stream(
           {
             folder: "farbetter/products",
-            width: 1000,
-            crop: "limit",
+            width: 800,
+            height: 800,
+            crop: "pad",
+            background: "white",
+            background_removal: "cloudinary_ai",
             quality: "auto",
             fetch_format: "auto"
           },
@@ -514,8 +517,11 @@ exports.updateProduct = asyncHandler(async (req, res) => {
         const stream = cloudinary.uploader.upload_stream(
           {
             folder: "farbetter/products",
-            width: 1000,
-            crop: "limit",
+            width: 800,
+            height: 800,
+            crop: "pad",
+            background: "white",
+            background_removal: "cloudinary_ai",
             quality: "auto",
             fetch_format: "auto"
           },
@@ -636,8 +642,11 @@ exports.uploadProductImage = asyncHandler(async (req, res) => {
       const stream = cloudinary.uploader.upload_stream(
         {
           folder: "farbetter/products",
-          width: 1000,
-          crop: "limit",
+          width: 800,
+          height: 800,
+          crop: "pad",
+          background: "white",
+          background_removal: "cloudinary_ai",
           quality: "auto",
           fetch_format: "auto"
         },
