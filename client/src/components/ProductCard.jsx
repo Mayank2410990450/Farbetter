@@ -136,7 +136,7 @@ export default function ProductCard({
             src={optimizedImage}
             alt={displayName}
             loading="lazy"
-            className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             data-testid={`img-product-${pid}`}
           />
         </div>

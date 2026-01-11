@@ -290,7 +290,7 @@ export default function ProductDetails() {
                   src={getOptimizedImageUrl(product?.images?.[selectedImage] || product?.image || product?.images?.[0] || "", 1000)}
                   alt={product?.name}
                   loading="eager"
-                  className="w-full h-full object-contain p-8 transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
 
                 {/* Discount Badge on Image */}
@@ -316,7 +316,7 @@ export default function ProductDetails() {
                         src={getOptimizedImageUrl(img, 160)}
                         alt={`${product?.name} ${idx + 1}`}
                         loading="lazy"
-                        className="w-full h-full object-contain p-2"
+                        className="w-full h-full object-cover"
                       />
                     </button>
                   ))}

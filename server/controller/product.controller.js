@@ -8,72 +8,9 @@ const streamifier = require("streamifier");
 // @desc    Create a new product (ADMIN)
 // @route   POST /api/products
 // -----------------------------------------------------
-// exports.createProduct = asyncHandler(async (req, res) => {
-//   const { title, description, category, brand, price, stock } = req.body;
-
-//   if (!title || !price || !category) {
-//     return res.status(400).json({
-//       message: "Title, price, category, are required.",
-//     });
-//   }
-
-//  // Validate category exists
-//  const categoryExists = await Category.findById(category);
-//  if (!categoryExists) {
-//    return res.status(400).json({
-//      success: false,
-//      message: "Invalid category ID"
-//    });
-//  }
 
 
-//   const product = await Product.create({
-//     title,
-//     description,
-//     category,
-//     brand,
-//     price,
-//     stock,
-//   });
 
-//   res.status(201).json({ message: "Product created successfully", product });
-// });
-
-// exports.createProduct = asyncHandler(async (req, res) => {
-//   const { title, description, category, brand, price, images, stock } = req.body;
-
-//   if (!title || !category || !price || !images) {
-//     return res.status(400).json({
-//       success: false,
-//       message: "Title, category, price and images are required"
-//     });
-//   }
-
-//   // Validate category exists
-//   const categoryExists = await Category.findById(category);
-//   if (!categoryExists) {
-//     return res.status(400).json({
-//       success: false,
-//       message: "Invalid category ID"
-//     });
-//   }
-
-//   const product = await Product.create({
-//     title,
-//     description,
-//     category,
-//     brand,
-//     price,
-//     images,
-//     stock
-//   });
-
-//   res.status(201).json({
-//     success: true,
-//     message: "Product created",
-//     product
-//   });
-// });
 
 
 
@@ -116,11 +53,7 @@ exports.createProduct = asyncHandler(async (req, res) => {
         const stream = cloudinary.uploader.upload_stream(
           {
             folder: "farbetter/products",
-            width: 800,
-            height: 800,
-            crop: "pad",
-            background: "white",
-            background_removal: "cloudinary_ai",
+            resource_type: "auto",
             quality: "auto",
             fetch_format: "auto"
           },
@@ -164,27 +97,7 @@ exports.createProduct = asyncHandler(async (req, res) => {
 });
 
 
-// exports.createProduct = asyncHandler(async (req, res) => {
-//   const { title, description, category, brand, price, images, stock } = req.body;
 
-//   if (!title || !price || !category || !images?.length) {
-//     return res.status(400).json({
-//       message: "Title, price, category, and at least one image are required.",
-//     });
-//   }
-
-//   const product = await Product.create({
-//     title,
-//     description,
-//     category,
-//     brand,
-//     price,
-//     images,
-//     stock,
-//   });
-
-//   res.status(201).json({ message: "Product created successfully", product });
-// });
 
 // -----------------------------------------------------
 // @desc    Get all products (search + filter + pagination)
@@ -232,63 +145,9 @@ exports.createProduct = asyncHandler(async (req, res) => {
 //     page: Number(page),
 //   }
 
-//  // Validate category exists
-//  const categoryExists = await Category.findById(category);
-//  if (!categoryExists) {
-//    return res.status(400).json({
-//      success: false,
-//      message: "Invalid category ID"
-//    });
-//  }
 
 
-//   const product = await Product.create({
-//     title,
-//     description,
-//     category,
-//     brand,
-//     price,
-//     stock,
-//   });
 
-//   res.status(201).json({ message: "Product created successfully", product });
-// });
-
-// exports.createProduct = asyncHandler(async (req, res) => {
-//   const { title, description, category, brand, price, images, stock } = req.body;
-
-//   if (!title || !category || !price || !images) {
-//     return res.status(400).json({
-//       success: false,
-//       message: "Title, category, price and images are required"
-//     });
-//   }
-
-//   // Validate category exists
-//   const categoryExists = await Category.findById(category);
-//   if (!categoryExists) {
-//     return res.status(400).json({
-//       success: false,
-//       message: "Invalid category ID"
-//     });
-//   }
-
-//   const product = await Product.create({
-//     title,
-//     description,
-//     category,
-//     brand,
-//     price,
-//     images,
-//     stock
-//   });
-
-//   res.status(201).json({
-//     success: true,
-//     message: "Product created",
-//     product
-//   });
-// });
 
 
 
@@ -298,76 +157,13 @@ exports.createProduct = asyncHandler(async (req, res) => {
 // Duplicate createProduct removed. The correct definition is at line 83.
 
 
-// exports.createProduct = asyncHandler(async (req, res) => {
-//   const { title, description, category, brand, price, images, stock } = req.body;
 
-//   if (!title || !price || !category || !images?.length) {
-//     return res.status(400).json({
-//       message: "Title, price, category, and at least one image are required.",
-//     });
-//   }
-
-//   const product = await Product.create({
-//     title,
-//     description,
-//     category,
-//     brand,
-//     price,
-//     images,
-//     stock,
-//   });
-
-//   res.status(201).json({ message: "Product created successfully", product });
-// });
 
 // -----------------------------------------------------
 // @desc    Get all products (search + filter + pagination)
 // @route   GET /api/products
 // -----------------------------------------------------
-// exports.getProducts = asyncHandler(async (req, res) => {
-//   const { page = 1, limit = 20, keyword, brand, minPrice, maxPrice, sort } =
-//     req.query;
 
-//   const query = {};
-
-//   // Search
-//   if (keyword) {
-//     query.title = { $regex: keyword, $options: "i" };
-//   }
-
-//   // Filter by brand
-//   if (brand) {
-//     query.brand = brand;
-//   }
-
-//   // Price Range
-//   if (minPrice || maxPrice) {
-//     query.price = {};
-//     if (minPrice) query.price.$gte = Number(minPrice);
-//     if (maxPrice) query.price.$lte = Number(maxPrice);
-//   }
-
-//   // Base query (THIS WAS MISSING)
-//   let mongoQuery = Product.find(query)
-//     .skip((page - 1) * limit)
-//     .limit(Number(limit));
-
-//   // Sorting
-//   if (sort === "price_asc") mongoQuery = mongoQuery.sort({ price: 1 });
-//   if (sort === "price_desc") mongoQuery = mongoQuery.sort({ price: -1 });
-//   if (sort === "newest") mongoQuery = mongoQuery.sort({ createdAt: -1 });
-
-//   // Execute
-//   const products = await mongoQuery;
-//   const total = await Product.countDocuments(query);
-
-//   res.json({
-//     total,
-//     page: Number(page),
-//     pages: Math.ceil(total / limit),
-//     products, // You forgot to return them
-//   });
-// });
 
 exports.getProducts = asyncHandler(async (req, res) => {
   const {
@@ -517,11 +313,7 @@ exports.updateProduct = asyncHandler(async (req, res) => {
         const stream = cloudinary.uploader.upload_stream(
           {
             folder: "farbetter/products",
-            width: 800,
-            height: 800,
-            crop: "pad",
-            background: "white",
-            background_removal: "cloudinary_ai",
+            resource_type: "auto",
             quality: "auto",
             fetch_format: "auto"
           },
@@ -642,11 +434,7 @@ exports.uploadProductImage = asyncHandler(async (req, res) => {
       const stream = cloudinary.uploader.upload_stream(
         {
           folder: "farbetter/products",
-          width: 800,
-          height: 800,
-          crop: "pad",
-          background: "white",
-          background_removal: "cloudinary_ai",
+          resource_type: "auto",
           quality: "auto",
           fetch_format: "auto"
         },
