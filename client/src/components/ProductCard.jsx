@@ -101,7 +101,7 @@ export default function ProductCard({
   };
 
   return (
-    <Card className="overflow-hidden hover-elevate group relative h-full flex flex-col">
+    <Card className="overflow-hidden hover-elevate group relative h-full flex flex-col rounded-none">
       {/* Wishlist Button */}
       <Button
         variant="ghost"
@@ -131,12 +131,12 @@ export default function ProductCard({
 
       {/* Product Image */}
       <div className="relative overflow-hidden bg-white cursor-pointer group" onClick={() => navigate(`/product/${pid}`)}>
-        <div className="w-full aspect-[3/4] relative overflow-hidden bg-white rounded-t-lg">
+        <div className="w-full aspect-[3/4] relative overflow-hidden bg-white dark:bg-card rounded-none">
           <img
             src={optimizedImage}
             alt={displayName}
             loading="lazy"
-            className="w-full h-full object-contain p-4 mix-blend-multiply group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-contain p-4 mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-300"
             data-testid={`img-product-${pid}`}
           />
         </div>

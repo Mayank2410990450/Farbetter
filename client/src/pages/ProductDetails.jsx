@@ -285,12 +285,12 @@ export default function ProductDetails() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 mb-20">
             {/* Product Image Gallery */}
             <div className="flex flex-col gap-6">
-              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-white shadow-sm group">
+              <div className="relative w-full aspect-square rounded-none overflow-hidden bg-white dark:bg-card shadow-sm group">
                 <img
                   src={getOptimizedImageUrl(product?.images?.[selectedImage] || product?.image || product?.images?.[0] || "", 1000)}
                   alt={product?.name}
                   loading="eager"
-                  className="w-full h-full object-contain p-6 mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-full object-contain p-6 mix-blend-multiply dark:mix-blend-normal transition-transform duration-500 group-hover:scale-105"
                 />
 
                 {/* Discount Badge on Image */}
@@ -307,7 +307,7 @@ export default function ProductDetails() {
                     <button
                       key={idx}
                       onClick={() => setSelectedImage(idx)}
-                      className={`flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden border-2 cursor-pointer transition-all duration-200 ${selectedImage === idx
+                      className={`flex-shrink-0 w-24 h-24 rounded-none overflow-hidden border-2 cursor-pointer transition-all duration-200 ${selectedImage === idx
                         ? 'border-primary ring-2 ring-primary/20 ring-offset-2'
                         : 'border-transparent bg-slate-50 hover:bg-slate-100'
                         }`}
@@ -316,7 +316,7 @@ export default function ProductDetails() {
                         src={getOptimizedImageUrl(img, 160)}
                         alt={`${product?.name} ${idx + 1}`}
                         loading="lazy"
-                        className="w-full h-full object-contain p-1 mix-blend-multiply"
+                        className="w-full h-full object-contain p-1 mix-blend-multiply dark:mix-blend-normal"
                       />
                     </button>
                   ))}
