@@ -131,12 +131,12 @@ export default function ProductCard({
 
       {/* Product Image */}
       <div className="relative overflow-hidden bg-white cursor-pointer group" onClick={() => navigate(`/product/${pid}`)}>
-        <div className="w-full h-48 md:h-56 overflow-hidden">
+        <div className="w-full aspect-[3/4] relative overflow-hidden bg-white rounded-t-lg">
           <img
             src={optimizedImage}
             alt={displayName}
             loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-contain p-4 mix-blend-multiply group-hover:scale-105 transition-transform duration-300"
             data-testid={`img-product-${pid}`}
           />
         </div>

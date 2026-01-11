@@ -123,10 +123,13 @@ export default function AdminProducts() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {products.map((p) => (
             <div key={p._id || p.id} className="bg-background border rounded p-4">
-              <div className="h-48 mb-4 bg-gray-100 rounded overflow-hidden flex items-center justify-center">
-                {p.imageUrl ? (
-                  // product images are stored as full URLs from cloudinary
-                  <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover" />
+              <div className="aspect-square mb-4 bg-white border rounded overflow-hidden flex items-center justify-center relative">
+                {(p.image || p.imageUrl || p.images?.[0]) ? (
+                  <img
+                    src={p.image || p.imageUrl || p.images?.[0]}
+                    alt={p.name}
+                    className="w-full h-full object-contain p-2"
+                  />
                 ) : (
                   <div className="text-sm text-muted-foreground">No image</div>
                 )}

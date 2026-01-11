@@ -285,12 +285,12 @@ export default function ProductDetails() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 mb-20">
             {/* Product Image Gallery */}
             <div className="flex flex-col gap-6">
-              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-white shadow-sm border border-slate-100 group">
+              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-white shadow-sm group">
                 <img
                   src={getOptimizedImageUrl(product?.images?.[selectedImage] || product?.image || product?.images?.[0] || "", 1000)}
                   alt={product?.name}
                   loading="eager"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-full object-contain p-6 mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
                 />
 
                 {/* Discount Badge on Image */}
@@ -316,7 +316,7 @@ export default function ProductDetails() {
                         src={getOptimizedImageUrl(img, 160)}
                         alt={`${product?.name} ${idx + 1}`}
                         loading="lazy"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain p-1 mix-blend-multiply"
                       />
                     </button>
                   ))}
