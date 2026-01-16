@@ -1162,6 +1162,17 @@ export default function AdminDashboard() {
                           <p className="text-sm text-muted-foreground">
                             Total: ₹{order.totalAmount?.toFixed(2) || "0.00"}
                           </p>
+                          {/* Address Section */}
+                          <div className="mt-3">
+                            <h4 className="font-semibold mb-1">Delivery Address</h4>
+                            <div className="text-sm space-y-1">
+                              <p><strong>{order.shippingAddress?.fullName}</strong></p>
+                              <p>{order.shippingAddress?.street}</p>
+                              <p>{order.shippingAddress?.city}, {order.shippingAddress?.state} {order.shippingAddress?.postalCode}</p>
+                              <p>{order.shippingAddress?.country}</p>
+                              <p className="text-muted-foreground">{order.shippingAddress?.phone}</p>
+                            </div>
+                          </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <Badge

@@ -1,0 +1,386 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+/* LINKS */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ================= NAVBAR ================= */
+
+.navbar {
+  height: 60px;
+  background-color: #0f1111;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.nav-logo {
+  height: 50px;
+  width: 100px;
+}
+
+.logo {
+  background-image: url("amazon_logo.png");
+  background-size: cover;
+  height: 50px;
+  width: 100%;
+}
+
+.border {
+  border: 1.5px solid transparent;
+}
+
+.border:hover {
+  border: 1.5px solid white;
+}
+
+/* Address */
+.add-first {
+  color: #cccccc;
+  font-size: 0.85rem;
+  margin-left: 15px;
+}
+
+.add-second {
+  font-size: 1rem;
+  margin-left: 3px;
+}
+
+.add-icon {
+  display: flex;
+  align-items: center;
+}
+
+/* Search */
+.nav-search {
+  display: flex;
+  background-color: pink;
+  width: 620px;
+  height: 40px;
+  border-radius: 4px;
+}
+
+.search-select {
+  width: 50px;
+  border: none;
+}
+
+.search-input {
+  width: 100%;
+  border: none;
+}
+
+.search-icon {
+  width: 45px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #febd69;
+}
+
+.nav-search:hover {
+  border: 2px solid orange;
+}
+
+/* Account */
+span {
+  font-size: 0.7rem;
+}
+
+.nav-second {
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.nav-cart i {
+  font-size: 28px;
+}
+
+/* ================= PANEL ================= */
+
+.panel {
+  height: 40px;
+  background-color: #222f3d;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.panel-ops {
+  width: 70%;
+  font-size: 0.85rem;
+}
+
+.panel-ops p {
+  display: inline;
+  margin-right: 15px;
+}
+
+/* ================= HERO ================= */
+
+.hero-section {
+  background-image: url("hero_image.jpg");
+  background-size: cover;
+  height: 350px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.hero-msg {
+  background: white;
+  height: 40px;
+  width: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+}
+
+/* ================= SHOP ================= */
+
+.shop-section {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  background-color: #e3e6e6;
+}
+
+.box {
+  width: 22%;
+  background: white;
+  padding: 20px 0;
+  margin-top: 15px;
+  display: block;   /* IMPORTANT */
+}
+
+.box-img {
+  height: 300px;
+  background-size: cover;
+  margin: 10px 0;
+}
+
+.box-content {
+  padding: 0 15px;
+}
+
+.box-content p {
+  color: #007185;
+}
+
+/* ================= ADS ================= */
+
+.ad-banner {
+  background: #ffe8c5;
+  margin: 20px;
+  padding: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ad-banner img {
+  width: 250px;
+}
+
+.ad-banner button {
+  background: #febd69;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+/* ================= PRODUCTS ================= */
+
+.featured {
+  padding: 20px;
+}
+
+.product-row {
+  display: flex;
+  gap: 20px;
+}
+
+.product-card {
+  width: 200px;
+  border: 1px solid #ddd;
+  padding: 15px;
+  text-align: center;
+}
+
+.product-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: contain;
+}
+
+.price {
+  color: #b12704;
+  font-weight: bold;
+}
+
+/*/* ================= AUTH PAGES ================= */
+
+.auth-body {
+  min-height: 100vh;
+  background: #f3f3f3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-box {
+  background: #fff;
+  width: 360px;
+  padding: 25px 28px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.auth-logo {
+  width: 110px;
+  display: block;
+  margin: 0 auto 20px;
+}
+
+.auth-box h2 {
+  font-weight: 400;
+  margin-bottom: 15px;
+}
+
+.auth-box label {
+  font-size: 13px;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.auth-box input {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 14px;
+  border: 1px solid #a6a6a6;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.auth-box input:focus {
+  outline: none;
+  border-color: #e77600;
+  box-shadow: 0 0 3px rgba(228,121,17,0.6);
+}
+
+.auth-btn {
+  width: 100%;
+  background: linear-gradient(#f7dfa5, #f0c14b);
+  border: 1px solid #a88734;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.auth-btn:hover {
+  background: linear-gradient(#f5d78e, #eeb933);
+}
+
+.auth-text {
+  font-size: 12px;
+  color: #555;
+  margin-top: 15px;
+  line-height: 1.5;
+}
+
+.auth-divider {
+  text-align: center;
+  margin: 20px 0;
+  position: relative;
+  font-size: 12px;
+  color: #767676;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  height: 1px;
+  width: 40%;
+  background: #ddd;
+  position: absolute;
+  top: 50%;
+}
+
+.auth-divider::before { left: 0; }
+.auth-divider::after { right: 0; }
+
+.auth-link {
+  display: block;
+  text-align: center;
+  border: 1px solid #ddd;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  background: #f7f7f7;
+}
+
+.auth-link:hover {
+  background: #eee;
+}
+
+
+/* ================= CART ================= */
+
+.cart-item {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid #ddd;
+  padding: 15px;
+}
+
+.cart-item img {
+  width: 120px;
+}
+
+/* ================= ORDERS ================= */
+
+.order-box {
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin: 10px;
+}
+
+/* ================= FOOTER ================= */
+
+.foot-panel1 {
+  background: #37475A;
+  color: white;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.foot-panel2 {
+  background: #222f3d;
+  color: white;
+  height: 300px;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.foot-panel4 {
+  background: #0f1111;
+  color: white;
+  height: 80px;
+  text-align: center;
+  font-size: 0.7rem;
+}
