@@ -10,8 +10,10 @@ import BackButton from "@/components/BackButton";
 import { fetchAddresses } from "@/api/address";
 import { placeOrder } from "@/api/order";
 import { fetchShippingSettings } from "@/api/admin";
-import { Heart, Trash2, Truck, Lock, MapPin } from "lucide-react";
+import { Heart, Trash2, Truck, Lock, MapPin, Tag, Loader2, X } from "lucide-react";
 import { getOptimizedImageUrl } from "@/lib/utils";
+import { validateCoupon } from "@/api/coupon";
+import { Input } from "@/components/ui/input";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -26,6 +28,12 @@ export default function Checkout() {
   const [shippingSettings, setShippingSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+
+  // Coupon states
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState(null);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -102,8 +110,49 @@ export default function Checkout() {
   }
 
   // Calculate total
+  // Calculate total
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const total = subtotal + shippingCost;
+  const discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
+  const total = Math.max(0, subtotal + shippingCost - discount);
+
+  // Clear coupon if cart becomes empty or subtotal drops below requirement (could be enhanced with useEffect check)
+  useEffect(() => {
+    if (appliedCoupon && subtotal < appliedCoupon.minPurchase) {
+      setAppliedCoupon(null);
+      setCouponError(`Coupon removed: Minimum purchase of ₹${appliedCoupon.minPurchase} required`);
+      toast({ title: "Coupon Removed", description: "Minimum purchase requirement not met", variant: "destructive" });
+    }
+  }, [subtotal, appliedCoupon]);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setCouponLoading(true);
+    setCouponError(null);
+    try {
+      const res = await validateCoupon(couponCode, subtotal);
+      if (res.isValid) {
+        setAppliedCoupon({
+          code: res.couponCode,
+          discountAmount: res.discountAmount,
+          minPurchase: res.minPurchase // ensure backend returns this if needed for re-validation
+        });
+        toast({ title: "Success", description: `Coupon ${res.couponCode} applied!` });
+        setCouponCode("");
+      }
+    } catch (error) {
+      console.error(error);
+      setCouponError(error.response?.data?.message || "Invalid coupon");
+      setAppliedCoupon(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponError(null);
+    toast({ title: "Removed", description: "Coupon removed" });
+  };
 
   const selectedAddress = addresses.find((a) => a._id === selectedAddressId);
 
@@ -207,8 +256,11 @@ export default function Checkout() {
       const orderRes = await placeOrder({
         selectedAddressId,
         paymentMethod,
+        paymentMethod,
         paymentId: null,
         shippingCost,
+        couponCode: appliedCoupon?.code,
+        discountAmount: appliedCoupon?.discountAmount || 0,
       });
 
       toast({
@@ -404,6 +456,38 @@ export default function Checkout() {
                   {shippingCost === 0 ? "FREE" : `₹${shippingCost.toFixed(2)}`}
                 </span>
               </div>
+              {appliedCoupon && (
+                <div className="flex justify-between text-green-600 font-medium animate-in fade-in slide-in-from-right-4">
+                  <span className="flex items-center gap-1"><Tag className="w-3 h-3" /> Discount ({appliedCoupon.code})</span>
+                  <span>-₹{appliedCoupon.discountAmount.toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Coupon Input */}
+            <div className="pt-2 pb-2">
+              {!appliedCoupon ? (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Coupon Code"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      className="h-9 uppercase"
+                      onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
+                    />
+                    <Button size="sm" onClick={handleApplyCoupon} disabled={couponLoading || !couponCode.trim()}>
+                      {couponLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Apply"}
+                    </Button>
+                  </div>
+                  {couponError && <p className="text-xs text-destructive">{couponError}</p>}
+                </div>
+              ) : (
+                <div className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+                  <span className="font-semibold">{appliedCoupon.code} applied</span>
+                  <button onClick={removeCoupon} className="text-green-700 hover:text-green-900"><X className="w-4 h-4" /></button>
+                </div>
+              )}
             </div>
 
             <div className="border-t pt-4">

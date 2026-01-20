@@ -83,10 +83,6 @@ export default function CustomerReviews() {
                       </Avatar>
                       <div>
                         <p className="font-semibold text-sm text-white dark:text-white">{name}</p>
-                        <div className="flex items-center gap-1 text-xs text-green-400 dark:text-green-400">
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>{role}</span>
-                        </div>
                       </div>
                     </div>
                     <div className="flex text-yellow-400">

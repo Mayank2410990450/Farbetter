@@ -174,41 +174,33 @@ export default function ProductCard({
       )}
 
       {/* Product Info */}
-      <div className="p-4 space-y-3 flex-1 flex flex-col">
+      <div className="p-3 pb-4 space-y-2 flex-1 flex flex-col bg-card dark:bg-zinc-950/50">
         <div className="cursor-pointer" onClick={() => navigate(`/product/${pid}`)}>
-          <h3 className="text-lg font-semibold line-clamp-2 hover:text-primary transition-colors" data-testid={`text-name-${pid}`}>
+          <h3 className="text-base font-medium line-clamp-2 hover:text-primary transition-colors leading-tight" data-testid={`text-name-${pid}`}>
             {displayName}
           </h3>
         </div>
 
-        {/* Always show rating (0.0 when none) */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          {renderStars(averageRating)}
-          <span className="font-medium">{(averageRating || 0).toFixed(1)}</span>
-        </div>
-
-        {/* Price */}
-        <div className="flex items-center gap-3">
-          <span className="text-2xl font-bold" data-testid={`text-price-${pid}`}>
-            ₹{((sizes[selectedSize] && sizes[selectedSize].price) || 0).toFixed(2)}
-          </span>
-          {product.originalPrice && (
-            <span className="text-sm text-muted-foreground line-through" data-testid={`text-original-price-${pid}`}>
-              ₹{product.originalPrice.toFixed(2)}
+        {/* Row 1: Price (Left) | Rating (Right) */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-lg font-bold" data-testid={`text-price-${pid}`}>
+              ₹{((sizes[selectedSize] && sizes[selectedSize].price) || 0).toFixed(0)}
             </span>
-          )}
+            {product.originalPrice && (
+              <span className="text-xs text-muted-foreground line-through" data-testid={`text-original-price-${pid}`}>
+                ₹{product.originalPrice.toFixed(0)}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1 text-xs font-medium bg-yellow-400/10 px-1.5 py-0.5 rounded text-yellow-600 dark:text-yellow-400">
+            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+            <span>{(averageRating || 0).toFixed(1)}</span>
+          </div>
         </div>
 
-        {/* Add to Cart Button */}
-        <Button
-          className="w-full"
-          onClick={handleAddToCart}
-          disabled={product?.stock === 0 || product?.soldOut}
-          data-testid={`button-add-to-cart-${pid}`}
-        >
-          <ShoppingCart className="mr-2 h-4 w-4" />
-          {product?.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-        </Button>
+
       </div>
       <QuickViewModal open={quickOpen} onOpenChange={setQuickOpen} product={product} />
     </Card>

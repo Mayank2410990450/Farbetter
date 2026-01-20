@@ -282,15 +282,15 @@ export default function ProductDetails() {
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8 md:py-12">
           <BackButton />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 mb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-16">
             {/* Product Image Gallery */}
-            <div className="flex flex-col gap-6">
-              <div className="relative w-full aspect-square rounded-none overflow-hidden bg-white dark:bg-card shadow-sm group">
+            <div className="flex flex-col gap-4 lg:col-span-5">
+              <div className="relative w-full aspect-[4/5] max-h-[500px] rounded-lg overflow-hidden bg-white dark:bg-card border shadow-sm group mx-auto">
                 <img
-                  src={getOptimizedImageUrl(product?.images?.[selectedImage] || product?.image || product?.images?.[0] || "", 1000)}
+                  src={getOptimizedImageUrl(product?.images?.[selectedImage] || product?.image || product?.images?.[0] || "", 800)}
                   alt={product?.name}
                   loading="eager"
-                  className="w-full h-full object-contain p-6 mix-blend-multiply dark:mix-blend-normal transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-full object-contain p-8 mix-blend-multiply dark:mix-blend-normal transition-transform duration-500 group-hover:scale-105"
                 />
 
                 {/* Discount Badge on Image */}
@@ -302,13 +302,13 @@ export default function ProductDetails() {
               </div>
 
               {product?.images && product.images.length > 1 && (
-                <div className="flex gap-4 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <div className="flex gap-3 overflow-x-auto pb-2 justify-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                   {product.images.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => setSelectedImage(idx)}
-                      className={`flex-shrink-0 w-24 h-24 rounded-none overflow-hidden border-2 cursor-pointer transition-all duration-200 ${selectedImage === idx
-                        ? 'border-primary ring-2 ring-primary/20 ring-offset-2'
+                      className={`flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border transition-all duration-200 ${selectedImage === idx
+                        ? 'border-primary ring-1 ring-primary/20'
                         : 'border-transparent bg-slate-50 hover:bg-slate-100'
                         }`}
                     >
@@ -316,7 +316,7 @@ export default function ProductDetails() {
                         src={getOptimizedImageUrl(img, 160)}
                         alt={`${product?.name} ${idx + 1}`}
                         loading="lazy"
-                        className="w-full h-full object-contain p-1 mix-blend-multiply dark:mix-blend-normal"
+                        className="w-full h-full object-contain p-2 mix-blend-multiply dark:mix-blend-normal"
                       />
                     </button>
                   ))}
@@ -325,7 +325,7 @@ export default function ProductDetails() {
             </div>
 
             {/* Product Details Column */}
-            <div className="flex flex-col space-y-8">
+            <div className="flex flex-col space-y-6 lg:col-span-7">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-2">
                   {product?.brand && (
@@ -341,7 +341,7 @@ export default function ProductDetails() {
                   )}
                 </div>
 
-                <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-foreground leading-tight">
+                <h1 className="text-xl lg:text-2xl font-semibold tracking-tight text-foreground leading-snug">
                   {product?.name || product?.title}
                 </h1>
 
@@ -368,8 +368,8 @@ export default function ProductDetails() {
               <div className="p-6 bg-muted/30 rounded-2xl border space-y-4">
                 <div className="flex items-end flex-wrap gap-4">
                   <div className="flex flex-col">
-                    <span className="text-sm text-muted-foreground font-medium mb-1">Total Price</span>
-                    <span className="text-5xl font-black text-foreground tracking-tight">₹{selectedPrice.toFixed(0)}</span>
+                    <span className="text-xs text-muted-foreground font-medium mb-0.5">Total Price</span>
+                    <span className="text-3xl font-bold text-foreground tracking-tight">₹{selectedPrice.toFixed(0)}</span>
                   </div>
                   {(product?.mrp > selectedPrice) && (
                     <div className="flex flex-col pb-2">
@@ -397,13 +397,13 @@ export default function ProductDetails() {
               {product?.bulletPoints && product.bulletPoints.length > 0 && (
                 <div className="space-y-3 py-2">
                   <h3 className="font-semibold text-foreground">Highlights</h3>
-                  <ul className="grid grid-cols-1 gap-3">
+                  <ul className="grid grid-cols-1 gap-2">
                     {product.bulletPoints.map((point, i) => point && (
-                      <li key={i} className="flex items-start gap-3 text-muted-foreground">
-                        <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-green-700" />
+                      <li key={i} className="flex items-start gap-2.5 text-muted-foreground">
+                        <div className="mt-1 flex-shrink-0 w-4 h-4 rounded-full bg-green-100 flex items-center justify-center">
+                          <CheckCircle2 className="w-3 h-3 text-green-700" />
                         </div>
-                        <span className="text-base leading-relaxed">{point}</span>
+                        <span className="text-sm leading-relaxed">{point}</span>
                       </li>
                     ))}
                   </ul>
@@ -417,20 +417,20 @@ export default function ProductDetails() {
                     Currently Out of Stock
                   </div>
                 ) : (
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex items-center border border-slate-200 rounded-xl bg-white h-14 w-full sm:w-auto min-w-[140px]">
+                  <div className="flex flex-row items-center gap-3">
+                    <div className="flex items-center border border-slate-200 rounded-lg bg-white h-10 min-w-[100px] shrink-0">
                       <button
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
                         disabled={quantity <= 1}
-                        className="px-4 h-full text-xl text-slate-500 hover:text-slate-900 disabled:opacity-30 transition-colors"
+                        className="px-2 h-full text-base text-slate-500 hover:text-slate-900 disabled:opacity-30 transition-colors"
                       >
                         -
                       </button>
-                      <div className="flex-1 text-center font-bold text-lg">{quantity}</div>
+                      <div className="flex-1 text-center font-semibold text-sm text-slate-900">{quantity}</div>
                       <button
                         onClick={() => setQuantity(quantity + 1)}
                         disabled={quantity >= product?.stock}
-                        className="px-4 h-full text-xl text-slate-500 hover:text-slate-900 disabled:opacity-30 transition-colors"
+                        className="px-2 h-full text-base text-slate-500 hover:text-slate-900 disabled:opacity-30 transition-colors"
                       >
                         +
                       </button>
@@ -438,18 +438,18 @@ export default function ProductDetails() {
 
                     <Button
                       onClick={handleAddToCart}
-                      className="flex-1 h-14 text-lg font-bold shadow-lg shadow-primary/20 rounded-xl"
+                      className="flex-1 h-10 text-sm font-semibold shadow-sm rounded-lg"
                     >
-                      <ShoppingCart className="mr-2 h-5 w-5" />
+                      <ShoppingCart className="mr-2 h-4 w-4" />
                       Add to Cart
                     </Button>
 
                     <Button
                       variant="outline"
                       onClick={handleToggleWishlist}
-                      className="h-14 w-14 p-0 rounded-xl border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+                      className="h-10 w-10 p-0 rounded-lg border-slate-200 hover:bg-slate-50 hover:border-slate-300 shrink-0"
                     >
-                      <Heart className={`h-6 w-6 transition-colors ${isWishlisted ? "fill-red-500 text-red-500" : "text-slate-400"}`} />
+                      <Heart className={`h-4 w-4 transition-colors ${isWishlisted ? "fill-red-500 text-red-500" : "text-slate-400"}`} />
                     </Button>
                   </div>
                 )}

@@ -21,7 +21,9 @@ import {
   Search,
   Grid3x3,
   ArrowLeft,
+  ArrowLeft,
   Gift,
+  Tag,
 } from "lucide-react";
 import {
   Dialog,
@@ -64,6 +66,7 @@ import {
   updateTestimonial,
   deleteTestimonial,
 } from "@/api/testimonial";
+import Coupons from "./Coupons";
 
 export default function AdminDashboard() {
   const { user, logout, authLoading } = useAuth();
@@ -545,6 +548,7 @@ export default function AdminDashboard() {
               { id: "categories", label: "Categories", icon: Grid3x3 },
               { id: "offers", label: "Offers", icon: Gift },
               { id: "orders", label: "Orders", icon: ShoppingCart },
+              { id: "coupons", label: "Coupons", icon: Tag },
               { id: "logs", label: "Logs", icon: FileText },
               { id: "testimonials", label: "Reviews", icon: FileText }, // Using FileText temporarily as MessageSquare import might need check
               { id: "settings", label: "Settings", icon: Settings },
@@ -648,6 +652,9 @@ export default function AdminDashboard() {
             </Card>
           </div>
         )}
+
+        {/* Coupons Tab */}
+        {activeTab === "coupons" && <Coupons />}
 
         {/* Products Tab */}
         {activeTab === "products" && (
