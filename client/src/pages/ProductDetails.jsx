@@ -148,6 +148,11 @@ export default function ProductDetails() {
     });
   };
 
+  const handleBuyNow = () => {
+    addToCart(productId, quantity);
+    navigate('/checkout');
+  };
+
   const handleToggleWishlist = () => {
     if (isWishlisted) {
       removeFromWishlist(productId);
@@ -279,7 +284,7 @@ export default function ProductDetails() {
         jsonLD={jsonLD}
       />
       <Header />
-      <main className="flex-1">
+      <main className="flex-1 pb-24 lg:pb-0">
         <div className="container mx-auto px-4 py-8 md:py-12">
           <BackButton />
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-16">
@@ -341,12 +346,12 @@ export default function ProductDetails() {
                   )}
                 </div>
 
-                <h1 className="text-xl lg:text-2xl font-semibold tracking-tight text-foreground leading-snug">
+                <h1 className="text-lg lg:text-3xl font-medium tracking-tight text-foreground leading-snug text-center lg:text-left">
                   {product?.name || product?.title}
                 </h1>
 
                 {/* Rating */}
-                <div className="flex items-center gap-4 group cursor-pointer" onClick={() => setActiveTab('reviews')}>
+                <div className="flex items-center justify-center lg:justify-start gap-4 group cursor-pointer" onClick={() => setActiveTab('reviews')}>
                   <div className="flex gap-1">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
@@ -364,39 +369,53 @@ export default function ProductDetails() {
                 </div>
               </div>
 
-              {/* Price Block */}
-              <div className="p-6 bg-muted/30 rounded-2xl border space-y-4">
-                <div className="flex items-end flex-wrap gap-4">
+              <div className="p-4 bg-muted/30 rounded-xl border space-y-3">
+                <div className="flex items-end justify-between gap-4">
                   <div className="flex flex-col">
                     <span className="text-xs text-muted-foreground font-medium mb-0.5">Total Price</span>
-                    <span className="text-3xl font-bold text-foreground tracking-tight">₹{selectedPrice.toFixed(0)}</span>
+                    <span className="text-2xl font-bold text-foreground tracking-tight">₹{selectedPrice.toFixed(0)}</span>
                   </div>
                   {(product?.mrp > selectedPrice) && (
-                    <div className="flex flex-col pb-2">
-                      <span className="text-lg text-muted-foreground line-through decoration-slate-400">
+                    <div className="flex flex-col items-end pb-1">
+                      <span className="text-sm text-muted-foreground line-through decoration-slate-400">
                         ₹{product.mrp.toFixed(0)}
                       </span>
-                      <span className="text-sm font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-md">
+                      <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-md">
                         Save ₹{(product.mrp - selectedPrice).toFixed(0)}
                       </span>
                     </div>
                   )}
                 </div>
 
-                {/* Size Selector */}
-                {/* Assuming 'sizes' is handled but if multiple sizes from prop, reuse logic. Else showing specific size field */}
-                {product?.size && (
-                  <div className="flex items-center gap-3 pt-2 text-sm text-muted-foreground">
-                    <span className="font-semibold text-foreground">Pack Size:</span>
-                    <Badge variant="secondary" className="px-3 py-1 font-medium border shadow-sm">{product.size}</Badge>
-                  </div>
+                <div className="flex items-center justify-between gap-2 border-t border-slate-200/60 pt-3">
+                  {product?.size && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="font-semibold text-foreground">Size:</span>
+                      <Badge variant="secondary" className="px-2 py-0.5 h-6 text-xs font-medium border shadow-sm">{product.size}</Badge>
+                    </div>
+                  )}
+
+                  {!(product?.stock === 0 || product?.soldOut) && (
+                    <div className="flex items-center gap-2 ml-auto">
+                      <div className="flex items-center border border-slate-200 rounded-md bg-white h-8 shrink-0 shadow-sm">
+                        <button onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1} className="px-2 h-full text-xs text-slate-500 hover:text-slate-900 disabled:opacity-30 hover:bg-slate-50">-</button>
+                        <div className="w-6 text-center font-semibold text-xs text-slate-900 border-x border-slate-100 h-full flex items-center justify-center">{quantity}</div>
+                        <button onClick={() => setQuantity(quantity + 1)} disabled={quantity >= product?.stock} className="px-2 h-full text-xs text-slate-500 hover:text-slate-900 disabled:opacity-30 hover:bg-slate-50">+</button>
+                      </div>
+                      <Button onClick={handleAddToCart} size="sm" variant="default" className="h-8 text-xs font-semibold px-3 shadow-sm">Add to Cart</Button>
+                    </div>
+                  )}
+                </div>
+
+                {(product?.stock === 0 || product?.soldOut) && (
+                  <div className="text-xs text-red-600 font-bold bg-red-50 p-2 rounded text-center border border-red-100">Currently Out of Stock</div>
                 )}
               </div>
 
               {/* Key Benefits / Bullet Points */}
               {product?.bulletPoints && product.bulletPoints.length > 0 && (
                 <div className="space-y-3 py-2">
-                  <h3 className="font-semibold text-foreground">Highlights</h3>
+                  <h3 className="font-medium text-foreground text-center lg:text-left">Highlights</h3>
                   <ul className="grid grid-cols-1 gap-2">
                     {product.bulletPoints.map((point, i) => point && (
                       <li key={i} className="flex items-start gap-2.5 text-muted-foreground">
@@ -411,45 +430,13 @@ export default function ProductDetails() {
               )}
 
               {/* Actions */}
-              <div className="flex flex-col gap-4 pt-4">
-                {(product?.stock === 0 || product?.soldOut) ? (
-                  <div className="w-full py-4 bg-red-50 text-red-600 font-bold text-center rounded-xl border border-red-100">
-                    Currently Out of Stock
-                  </div>
-                ) : (
-                  <div className="flex flex-row items-center gap-3">
-                    <div className="flex items-center border border-slate-200 rounded-lg bg-white h-10 min-w-[100px] shrink-0">
-                      <button
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        disabled={quantity <= 1}
-                        className="px-2 h-full text-base text-slate-500 hover:text-slate-900 disabled:opacity-30 transition-colors"
-                      >
-                        -
-                      </button>
-                      <div className="flex-1 text-center font-semibold text-sm text-slate-900">{quantity}</div>
-                      <button
-                        onClick={() => setQuantity(quantity + 1)}
-                        disabled={quantity >= product?.stock}
-                        className="px-2 h-full text-base text-slate-500 hover:text-slate-900 disabled:opacity-30 transition-colors"
-                      >
-                        +
-                      </button>
-                    </div>
-
-                    <Button
-                      onClick={handleAddToCart}
-                      className="flex-1 h-10 text-sm font-semibold shadow-sm rounded-lg"
-                    >
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      Add to Cart
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      onClick={handleToggleWishlist}
-                      className="h-10 w-10 p-0 rounded-lg border-slate-200 hover:bg-slate-50 hover:border-slate-300 shrink-0"
-                    >
-                      <Heart className={`h-4 w-4 transition-colors ${isWishlisted ? "fill-red-500 text-red-500" : "text-slate-400"}`} />
+              {/* Main Actions (Buy Now) */}
+              <div className="pt-2">
+                {!(product?.stock === 0 || product?.soldOut) && (
+                  <div className="flex gap-3">
+                    <Button onClick={handleBuyNow} className="flex-1 h-11 text-sm font-semibold shadow-md rounded-xl text-md">Buy Now</Button>
+                    <Button variant="outline" onClick={handleToggleWishlist} className="h-11 w-11 p-0 rounded-xl border-slate-200 hover:bg-slate-50 shrink-0">
+                      <Heart className={`h-5 w-5 transition-colors ${isWishlisted ? "fill-red-500 text-red-500" : "text-slate-400"}`} />
                     </Button>
                   </div>
                 )}
@@ -503,7 +490,7 @@ export default function ProductDetails() {
               {activeTab === 'description' && (
                 <div>
                   {product?.description ? (
-                    <div className="prose prose-lg max-w-none text-muted-foreground leading-relaxed bg-muted/30 p-8 rounded-lg">
+                    <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none text-muted-foreground leading-relaxed bg-muted/30 p-4 lg:p-8 rounded-lg">
                       {product.description}
                     </div>
                   ) : (
@@ -639,6 +626,30 @@ export default function ProductDetails() {
       </main>
       <Footer />
       <ReviewModal open={modalOpen} onOpenChange={setModalOpen} review={selectedReview} />
+
+      {/* Mobile Sticky Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-3 z-50 lg:hidden flex items-center justify-between gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] safe-area-bottom">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded border bg-white overflow-hidden shrink-0">
+            <img
+              src={getOptimizedImageUrl(productImage, 100)}
+              alt={productTitle}
+              className="w-full h-full object-contain p-1 mix-blend-multiply dark:mix-blend-normal"
+            />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-bold">₹{selectedPrice.toFixed(0)}</span>
+            {product?.mrp > selectedPrice && (
+              <span className="text-[10px] text-muted-foreground line-through">₹{product.mrp.toFixed(0)}</span>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-1 gap-2 max-w-[240px]">
+          <Button onClick={handleBuyNow} size="sm" className="flex-1 h-10 text-xs px-2 font-bold shadow-md">
+            Buy Now
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
