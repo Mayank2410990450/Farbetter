@@ -21,7 +21,6 @@ import {
   Search,
   Grid3x3,
   ArrowLeft,
-  ArrowLeft,
   Gift,
   Tag,
 } from "lucide-react";
