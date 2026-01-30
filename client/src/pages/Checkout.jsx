@@ -175,6 +175,15 @@ export default function Checkout() {
       return;
     }
 
+    if (paymentMethod === "Razorpay" && total < 1) {
+      toast({
+        title: "Minimum Order Amount",
+        description: "Online payments require a minimum order value of ₹1.00. Please add more items or choose COD.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setProcessing(true);
 
