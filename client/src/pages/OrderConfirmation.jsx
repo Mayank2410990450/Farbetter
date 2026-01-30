@@ -116,20 +116,18 @@ export default function OrderConfirmation() {
                   <div key={step.key}>
                     <div className="flex items-center gap-4">
                       <div
-                        className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                          isActive
+                        className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${isActive
                             ? "bg-green-500 text-white"
                             : "bg-gray-200 text-gray-400"
-                        }`}
+                          }`}
                       >
                         <Icon className="h-5 w-5" />
                       </div>
 
                       <div className="flex-1">
                         <p
-                          className={`font-semibold ${
-                            isCurrent ? "text-primary" : isActive ? "" : ""
-                          }`}
+                          className={`font-semibold ${isCurrent ? "text-primary" : isActive ? "" : ""
+                            }`}
                         >
                           {step.label}
                         </p>
@@ -137,8 +135,8 @@ export default function OrderConfirmation() {
                           {isCurrent
                             ? "Current status"
                             : isActive
-                            ? "Completed"
-                            : "Pending"}
+                              ? "Completed"
+                              : "Pending"}
                         </p>
                       </div>
                     </div>
@@ -271,7 +269,7 @@ export default function OrderConfirmation() {
             <div className="space-y-2 pt-4">
               <Button
                 className="w-full"
-                onClick={() => navigate("/user/dashboard")}
+                onClick={() => navigate("/user/dashboard#orders")}
               >
                 <ArrowRight className="mr-2 h-4 w-4" />
                 View All Orders

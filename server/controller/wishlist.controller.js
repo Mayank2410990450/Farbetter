@@ -1,9 +1,10 @@
 const Wishlist = require("../models/wishlist.modal");
+const mongoose = require("mongoose");
 const asyncHandler = require("../middlewares/asyncHandler");
 
 
 exports.addToWishlist = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
+  const userId = new mongoose.Types.ObjectId(req.user.id);
   const { productId } = req.body;
 
   let wishlist = await Wishlist.findOne({ user: userId });
@@ -31,7 +32,7 @@ exports.addToWishlist = asyncHandler(async (req, res) => {
 
 
 exports.removeFromWishlist = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
+  const userId = new mongoose.Types.ObjectId(req.user.id);
   const { productId } = req.body;
 
   let wishlist = await Wishlist.findOne({ user: userId });
@@ -50,7 +51,8 @@ exports.removeFromWishlist = asyncHandler(async (req, res) => {
 });
 
 exports.getWishlist = asyncHandler(async (req, res) => {
-  const wishlist = await Wishlist.findOne({ user: req.user.id })
+  const userId = new mongoose.Types.ObjectId(req.user.id);
+  const wishlist = await Wishlist.findOne({ user: userId })
     .populate("products", "title price image");
 
   res.json({

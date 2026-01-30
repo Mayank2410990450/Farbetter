@@ -1,4 +1,5 @@
 const Cart = require("../models/cart.modal");
+const mongoose = require("mongoose");
 const Product = require("../models/Product.modal");
 const asyncHandler = require("../middlewares/asyncHandler");
 
@@ -6,7 +7,7 @@ const asyncHandler = require("../middlewares/asyncHandler");
 // ADD ITEM TO CART
 // ------------------------------------------
 exports.addToCart = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
+  const userId = new mongoose.Types.ObjectId(req.user.id);
   const { productId, quantity = 1 } = req.body;
 
   const product = await Product.findById(productId);
@@ -45,7 +46,7 @@ exports.addToCart = asyncHandler(async (req, res) => {
 // GET USER CART
 // ------------------------------------------
 exports.getCart = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
+  const userId = new mongoose.Types.ObjectId(req.user.id);
 
   const cart = await Cart.findOne({ user: userId }).populate(
     "items.product",
@@ -59,7 +60,7 @@ exports.getCart = asyncHandler(async (req, res) => {
 // UPDATE ITEM QUANTITY
 // ------------------------------------------
 exports.updateQuantity = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
+  const userId = new mongoose.Types.ObjectId(req.user.id);
   const { productId, quantity } = req.body;
 
   if (quantity < 1)
@@ -88,7 +89,7 @@ exports.updateQuantity = asyncHandler(async (req, res) => {
 // REMOVE ITEM FROM CART
 // ------------------------------------------
 exports.removeItem = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
+  const userId = new mongoose.Types.ObjectId(req.user.id);
   const { productId } = req.params;
 
   const cart = await Cart.findOne({ user: userId });
@@ -109,7 +110,7 @@ exports.removeItem = asyncHandler(async (req, res) => {
 // CLEAR USER CART
 // ------------------------------------------
 exports.clearCart = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
+  const userId = new mongoose.Types.ObjectId(req.user.id);
 
   await Cart.findOneAndUpdate(
     { user: userId },

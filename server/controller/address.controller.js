@@ -1,10 +1,10 @@
-// controllers/address.controller.js
 const Address = require("../models/address.modal");
+const mongoose = require("mongoose");
 const asyncHandler = require("../middlewares/asyncHandler");
 
 // Add new address
 exports.addAddress = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
+  const userId = new mongoose.Types.ObjectId(req.user.id);
 
   const address = await Address.create({ ...req.body, user: userId });
 
@@ -19,7 +19,8 @@ exports.addAddress = asyncHandler(async (req, res) => {
 
 // Get user addresses
 exports.getAddresses = asyncHandler(async (req, res) => {
-  const addresses = await Address.find({ user: req.user.id }).sort({
+  const userId = new mongoose.Types.ObjectId(req.user.id);
+  const addresses = await Address.find({ user: userId }).sort({
     isDefault: -1,
     createdAt: -1
   });
@@ -29,7 +30,7 @@ exports.getAddresses = asyncHandler(async (req, res) => {
 
 // Set default address
 exports.setDefaultAddress = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
+  const userId = new mongoose.Types.ObjectId(req.user.id);
   const { id } = req.params;
 
   await Address.updateMany({ user: userId }, { isDefault: false });
@@ -42,14 +43,15 @@ exports.setDefaultAddress = asyncHandler(async (req, res) => {
 exports.deleteAddress = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const address = await Address.findOneAndDelete({ _id: id, user: req.user.id });
+  const userId = new mongoose.Types.ObjectId(req.user.id);
+  const address = await Address.findOneAndDelete({ _id: id, user: userId });
 
   if (!address)
     return res.status(404).json({ success: false, message: "Address not found" });
 
   // Assign new default if needed
   if (address.isDefault) {
-    const remaining = await Address.find({ user: req.user.id });
+    const remaining = await Address.find({ user: userId });
     if (remaining.length > 0) {
       remaining[0].isDefault = true;
       await remaining[0].save();

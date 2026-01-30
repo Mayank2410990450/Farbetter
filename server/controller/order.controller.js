@@ -99,10 +99,18 @@ exports.placeOrder = asyncHandler(async (req, res) => {
 });
 
 // 2️⃣ Get user orders
+// 2️⃣ Get user orders
 exports.getMyOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ user: req.user.id })
+  console.log(`[DEBUG] getMyOrders called. User ID from token: ${req.user.id}`);
+
+  // Explicitly cast to ObjectId to ensure match
+  const userId = new mongoose.Types.ObjectId(req.user.id);
+
+  const orders = await Order.find({ user: userId })
     .populate("items.product", "title images price")
     .sort({ createdAt: -1 });
+
+  console.log(`[DEBUG] Found ${orders.length} orders for user ${req.user.id}`);
 
   res.json({ success: true, orders });
 });
