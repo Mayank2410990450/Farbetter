@@ -20,29 +20,39 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 // Create Razorpay order AND MongoDB Order (status: pending)
 exports.createOrder = async (req, res) => {
   try {
+    console.log("[DEBUG] createOrder called");
     if (!razorpay) {
       console.error('🔴 createOrder: Razorpay not initialized');
       return res.status(400).json({ success: false, message: "Razorpay is not configured." });
     }
 
-    const userId = req.user.id;
-    if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+    const userIdString = req.user.id;
+    if (!userIdString) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    // Explicitly cast to ObjectId
+    const mongoose = require('mongoose');
+    const userId = new mongoose.Types.ObjectId(userIdString);
 
     const { amount, selectedAddressId, shippingCost = 0, couponCode, discountAmount = 0 } = req.body;
+    console.log(`[DEBUG] createOrder params: amount=${amount}, address=${selectedAddressId}`);
 
     if (!amount || amount <= 0) {
+      console.error('[DEBUG] Invalid amount');
       return res.status(400).json({ success: false, message: 'Invalid amount' });
     }
 
     // 1. Fetch Cart & Address
     const cart = await Cart.findOne({ user: userId }).populate('items.product');
-    const Address = require('../models/address.modal');
+
+    // Ensure Address model is available
     const address = await Address.findById(selectedAddressId);
 
     if (!cart || !cart.items || cart.items.length === 0) {
+      console.error(`[DEBUG] Cart empty or not found for user ${userIdString}`);
       return res.status(400).json({ success: false, message: 'Cart is empty' });
     }
     if (!address) {
+      console.error(`[DEBUG] Address not found: ${selectedAddressId}`);
       return res.status(400).json({ success: false, message: 'Invalid address' });
     }
 
