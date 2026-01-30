@@ -195,7 +195,12 @@ export default function Checkout() {
           const { createRazorpayOrder, verifyRazorpayPayment } = await import('@/api/payment');
 
           // create razorpay order on server (send amount from cart total)
-          const orderResp = await createRazorpayOrder({ amount: total });
+          const orderResp = await createRazorpayOrder({
+            amount: total,
+            selectedAddressId,
+            shippingCost,
+            couponCode: appliedCoupon?.code
+          });
           if (!orderResp?.orderId) throw new Error('Failed to create razorpay order');
 
           // ensure Razorpay SDK loaded
@@ -216,23 +221,23 @@ export default function Checkout() {
             order_id: orderResp.orderId,
             handler: async function (response) {
               try {
-
-                // verify payment and create order on server
+                // verify payment using the dbOrderId we got earlier
                 const verify = await verifyRazorpayPayment({
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_payment_id: response.razorpay_payment_id,
                   razorpay_signature: response.razorpay_signature,
-                  selectedAddressId
+                  dbOrderId: orderResp.dbOrderId // pass the MongoDB Order ID
                 });
                 if (!verify?.success) throw new Error(verify?.message || 'Verification failed');
 
-                // server created the order; redirect to confirmation
                 toast({ title: 'Success', description: 'Payment successful! Redirecting...' });
                 clearCart();
                 navigate(`/order-confirmation/${verify.orderId}`);
               } catch (err) {
-                console.error('Payment error:', err);
-                toast({ title: 'Payment error', description: err?.message || 'Payment verification failed', variant: 'destructive' });
+                console.error('Payment verification error:', err);
+                // Even if frontend verification fails now, the Webhook should eventually fix it
+                // But we show error to user
+                toast({ title: 'Order Verification Error', description: 'Please check your orders page.', variant: 'destructive' });
               }
             },
             prefill: {

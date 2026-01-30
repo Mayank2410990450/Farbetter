@@ -6,9 +6,15 @@ export const createRazorpayOrder = async (payload = {}) => {
   return data;
 };
 
-export const verifyRazorpayPayment = async ({ razorpay_order_id, razorpay_payment_id, razorpay_signature, selectedAddressId }) => {
-  // Send selectedAddressId so server can create the order with correct address
-  const { data } = await api.post('/payments/verify-payment', { razorpay_order_id, razorpay_payment_id, razorpay_signature, selectedAddressId });
+export const verifyRazorpayPayment = async ({ razorpay_order_id, razorpay_payment_id, razorpay_signature, selectedAddressId, dbOrderId }) => {
+  // Send either selectedAddressId (legacy) or dbOrderId (new)
+  const { data } = await api.post('/payments/verify-payment', {
+    razorpay_order_id,
+    razorpay_payment_id,
+    razorpay_signature,
+    selectedAddressId,
+    dbOrderId
+  });
   return data;
 };
 
