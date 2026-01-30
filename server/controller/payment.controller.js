@@ -18,6 +18,7 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 }
 
 // Create Razorpay order AND MongoDB Order (status: pending)
+// Create Razorpay order AND MongoDB Order (status: pending)
 exports.createOrder = async (req, res) => {
   try {
     console.log("[DEBUG] createOrder called");
@@ -33,12 +34,16 @@ exports.createOrder = async (req, res) => {
     const mongoose = require('mongoose');
     const userId = new mongoose.Types.ObjectId(userIdString);
 
-    const { amount, selectedAddressId, shippingCost = 0, couponCode, discountAmount = 0 } = req.body;
-    console.log(`[DEBUG] createOrder params: amount=${amount}, address=${selectedAddressId}`);
+    const { amount, selectedAddressId, shippingCost, couponCode, discountAmount = 0 } = req.body;
+    let finalAmount = Number(amount) || 0;
+    const shippingCostNum = Number(shippingCost) || 0;
 
-    if (!amount || amount <= 0) {
-      console.error('[DEBUG] Invalid amount');
-      return res.status(400).json({ success: false, message: 'Invalid amount' });
+    console.log(`[DEBUG] createOrder params: amount=${finalAmount}, address=${selectedAddressId}`);
+
+    // Razorpay requires minimum 1 INR (100 paise)
+    if (finalAmount < 1) {
+      console.error('[DEBUG] Amount less than 1 INR:', finalAmount);
+      return res.status(400).json({ success: false, message: 'Order amount must be at least ₹1 for online payment' });
     }
 
     // 1. Fetch Cart & Address
@@ -58,17 +63,24 @@ exports.createOrder = async (req, res) => {
 
     // 2. Prepare Order Items
     const orderItems = [];
+    let calculatedSubtotal = 0;
     for (const item of cart.items) {
       if (!item.product) continue;
-      // We do NOT check stock here strictly or reduce it yet, 
-      // but ideally we should checking stock. 
-      // For now, let's proceed to allow payment.
+
       orderItems.push({
         product: item.product._id,
         quantity: item.quantity,
         price: item.product.price
       });
+      calculatedSubtotal += item.product.price * item.quantity;
     }
+
+    // Optional: Verify amount matches somewhat (allowing for shipping/coupons)
+    // const expectedTotal = calculatedSubtotal + shippingCostNum - discountAmount;
+    // if (Math.abs(expectedTotal - finalAmount) > 1.0) {
+    //   console.warn(`[WARNING] createOrder amount mismatch: req=${finalAmount}, calc=${expectedTotal}`);
+    //   // We could block here for security, but for now we continue
+    // }
 
     // 3. Create Pending MongoDB Order
     const dbOrder = await Order.create({
@@ -76,15 +88,15 @@ exports.createOrder = async (req, res) => {
       items: orderItems,
       shippingAddress: address,
       paymentMethod: 'Razorpay',
-      totalAmount: amount, // Assumed to include shipping - discount
-      shippingCost,
+      totalAmount: finalAmount,
+      shippingCost: shippingCostNum,
       paymentStatus: 'pending',
       orderStatus: 'pending_payment' // Special status indicating not yet verified
     });
 
     // 4. Create Razorpay Order
     const options = {
-      amount: Math.round(amount * 100),
+      amount: Math.round(finalAmount * 100), // Convert to paisa
       currency: 'INR',
       receipt: dbOrder._id.toString(), // LINK DB ORDER ID HERE
       notes: {
@@ -92,20 +104,28 @@ exports.createOrder = async (req, res) => {
         dbOrderId: dbOrder._id.toString()
       }
     };
-    const rpOrder = await razorpay.orders.create(options);
 
-    // Save Razorpay Order ID to DB Order for reference (optional, but good for tracking)
-    // We can use 'paymentId' field temporarily or just rely on receipt
-    dbOrder.paymentId = rpOrder.id;
-    await dbOrder.save();
+    try {
+      const rpOrder = await razorpay.orders.create(options);
 
-    res.status(200).json({
-      success: true,
-      orderId: rpOrder.id,
-      amount: rpOrder.amount,
-      currency: rpOrder.currency,
-      dbOrderId: dbOrder._id // Send back to frontend
-    });
+      // Save Razorpay Order ID to DB Order for reference (optional, but good for tracking)
+      dbOrder.paymentId = rpOrder.id;
+      await dbOrder.save();
+
+      res.status(200).json({
+        success: true,
+        orderId: rpOrder.id,
+        amount: rpOrder.amount,
+        currency: rpOrder.currency,
+        dbOrderId: dbOrder._id // Send back to frontend
+      });
+    } catch (rpErr) {
+      console.error('Razorpay Order Creation Failed:', rpErr);
+      // Delete the pending DB order so user doesn't see a failed phantom order? 
+      // Or keep it as 'pending_payment'
+      // await Order.findByIdAndDelete(dbOrder._id); 
+      return res.status(400).json({ success: false, message: 'Payment gateway error: ' + rpErr.message || 'Unknown' });
+    }
 
   } catch (err) {
     console.error("Create Order Error:", err);
