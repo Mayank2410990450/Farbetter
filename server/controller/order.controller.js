@@ -141,6 +141,7 @@ exports.getOrderById = asyncHandler(async (req, res) => {
 // 3️⃣ Admin: all orders
 exports.getAllOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find()
+    .sort({ createdAt: -1 }) // Show LATEST first
     .populate("user", "name email")
     .populate("items.product", "title images price");
 
