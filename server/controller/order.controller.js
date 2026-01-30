@@ -12,90 +12,113 @@ const { sendOrderConfirmationEmail, sendOrderStatusEmail } = require("../service
 
 // 1️⃣ Place Order
 exports.placeOrder = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
-  const { selectedAddressId, paymentMethod, paymentId, shippingCost = 0 } = req.body;
-
-  const cart = await Cart.findOne({ user: userId }).populate("items.product");
-  if (!cart || cart.items.length === 0)
-    return res.status(400).json({ success: false, message: "Cart is empty" });
-
-  const address = await Address.findOne({ _id: selectedAddressId, user: userId });
-  if (!address) return res.status(400).json({ success: false, message: "Invalid address" });
-
-  // Validate Payment Method
-  if (paymentMethod === "COD") {
-    const settings = await ShippingSettings.findOne({});
-    if (settings && settings.codEnabled === false) {
-      return res.status(400).json({ success: false, message: "Cash on Delivery is currently disabled" });
-    }
-  }
-
-  let totalAmount = 0;
-  const orderItems = [];
-
-  for (const item of cart.items) {
-    if (!item.product || item.product.stock < item.quantity)
-      return res.status(400).json({ success: false, message: `${item.product?.title} out of stock` });
-
-    orderItems.push({
-      product: item.product._id,
-      quantity: item.quantity,
-      price: item.product.price
-    });
-
-    totalAmount += item.product.price * item.quantity;
-
-    // Reduce stock
-    item.product.stock -= item.quantity;
-    await item.product.save();
-  }
-
-  const order = await Order.create({
-    user: userId,
-    items: orderItems,
-    shippingAddress: address,
-    paymentMethod,
-    totalAmount: totalAmount + shippingCost,
-    shippingCost,
-    paymentStatus: paymentMethod === "COD" ? "pending" : "paid"
-  });
-
-  // Clear cart
-  cart.items = [];
-  await cart.save();
-
-  // Log payment if online
-  // Create a PaymentLog for every order so admin logs include COD and online orders
+  console.log('[DEBUG] placeOrder called');
   try {
-    const logEntry = {
+    const userId = req.user.id;
+    const { selectedAddressId, paymentMethod, paymentId, shippingCost } = req.body;
+    const shippingCostNumber = Number(shippingCost) || 0;
+    console.log('[DEBUG] Payload:', { userId, selectedAddressId, paymentMethod, shippingCost: shippingCostNumber });
+
+    const cart = await Cart.findOne({ user: userId }).populate("items.product");
+    if (!cart || cart.items.length === 0)
+      return res.status(400).json({ success: false, message: "Cart is empty" });
+
+    const address = await Address.findOne({ _id: selectedAddressId, user: userId });
+    if (!address) return res.status(400).json({ success: false, message: "Invalid address" });
+    console.log('[DEBUG] Address found:', address._id);
+
+    // Validate Payment Method
+    if (paymentMethod === "COD") {
+      const settings = await ShippingSettings.findOne({});
+      if (settings && settings.codEnabled === false) {
+        return res.status(400).json({ success: false, message: "Cash on Delivery is currently disabled" });
+      }
+    }
+
+    let totalAmount = 0;
+    const orderItems = [];
+
+    for (const item of cart.items) {
+      if (!item.product || item.product.stock < item.quantity)
+        return res.status(400).json({ success: false, message: `${item.product?.title} out of stock` });
+
+      orderItems.push({
+        product: item.product._id,
+        quantity: item.quantity,
+        price: item.product.price
+      });
+
+      totalAmount += item.product.price * item.quantity;
+
+      // Reduce stock
+      item.product.stock -= item.quantity;
+      await item.product.save();
+    }
+    console.log('[DEBUG] Stock updated. Total amount calculated:', totalAmount);
+
+    const orderPayload = {
       user: userId,
-      order: order._id,
-      amount: totalAmount,
-      paymentMethod: paymentMethod || 'COD',
-      paymentId: paymentId || null,
-      status: paymentMethod !== 'COD' && paymentId ? 'success' : (paymentMethod === 'COD' ? 'pending' : 'pending'),
-      providerResponse: {}
+      items: orderItems,
+      shippingAddress: {
+        fullName: address.fullName,
+        phone: address.phone,
+        street: address.street,
+        city: address.city,
+        state: address.state,
+        country: address.country,
+        postalCode: address.postalCode
+      },
+      paymentMethod,
+      totalAmount: totalAmount + shippingCostNumber,
+      shippingCost: shippingCostNumber,
+      paymentStatus: paymentMethod === "COD" ? "pending" : "paid"
     };
 
-    await PaymentLog.create(logEntry);
-  } catch (logErr) {
-    console.error('Failed to create payment log (non-blocking):', logErr.message);
-  }
+    console.log('[DEBUG] Creating order with payload:', JSON.stringify(orderPayload, null, 2));
 
-  // Send order confirmation email
-  try {
-    const user = await User.findById(userId);
-    if (user) {
-      // Populate order with product details for email
-      // Populate order with product details for email
-      const populatedOrder = await Order.findById(order._id).populate("items.product");
-      sendOrderConfirmationEmail(user, populatedOrder).catch(err => console.error("Email sending error (background):", err.message));
+    const order = await Order.create(orderPayload);
+    console.log('[DEBUG] Order created:', order._id);
+
+    // Clear cart
+    cart.items = [];
+    await cart.save();
+
+    // Log payment if online
+    // Create a PaymentLog for every order so admin logs include COD and online orders
+    try {
+      const logEntry = {
+        user: userId,
+        order: order._id,
+        amount: totalAmount,
+        paymentMethod: paymentMethod || 'COD',
+        paymentId: paymentId || null,
+        status: paymentMethod !== 'COD' && paymentId ? 'success' : (paymentMethod === 'COD' ? 'pending' : 'pending'),
+        providerResponse: {}
+      };
+
+      await PaymentLog.create(logEntry);
+    } catch (logErr) {
+      console.error('Failed to create payment log (non-blocking):', logErr.message);
     }
-  } catch (emailError) {
-    console.error("Email sending error (non-blocking):", emailError.message);
-  }
 
-  res.status(201).json({ success: true, order });
+    // Send order confirmation email
+    try {
+      const user = await User.findById(userId);
+      if (user) {
+        // Populate order with product details for email
+        // Populate order with product details for email
+        const populatedOrder = await Order.findById(order._id).populate("items.product");
+        sendOrderConfirmationEmail(user, populatedOrder).catch(err => console.error("Email sending error (background):", err.message));
+      }
+    } catch (emailError) {
+      console.error("Email sending error (non-blocking):", emailError.message);
+    }
+
+    res.status(201).json({ success: true, order });
+  } catch (error) {
+    console.error('[DEBUG] placeOrder Error:', error);
+    res.status(500).json({ success: false, message: error.message, stack: error.stack });
+  }
 });
 
 // 2️⃣ Get user orders
