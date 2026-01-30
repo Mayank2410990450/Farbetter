@@ -47,7 +47,8 @@ app.use(cors({
       'https://www.farbetterstore.com',
       'https://farbetterstore.com',
       'http://localhost:5173',
-      'http://localhost:5000'
+      'http://localhost:5000',
+      'https://farbetter-438e6j399-mayanks-projects-c2e595e7.vercel.app'
     ];
 
 
