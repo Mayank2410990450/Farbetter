@@ -68,7 +68,8 @@ export default function Checkout() {
 
         // Fetch addresses
         const res = await fetchAddresses();
-        const addrs = Array.isArray(res) ? res : res.addresses || [];
+        const addrsRaw = Array.isArray(res) ? res : res.addresses || [];
+        const addrs = addrsRaw.filter(a => a.street && a.city && a.phone);
         setAddresses(addrs);
 
         // Auto-select default address

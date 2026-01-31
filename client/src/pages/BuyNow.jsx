@@ -13,11 +13,13 @@ import { useToast } from '@/hooks/use-toast';
 import { fetchProduct } from '@/api/product';
 import { fetchAddresses, addAddress } from '@/api/address';
 import { createRazorpayOrder, verifyRazorpayPayment } from '@/api/payment';
+import { validateCoupon } from "@/api/coupon";
 import { placeOrder } from '@/api/order';
+import { fetchShippingSettings } from '@/api/admin';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { SkeletonCheckout } from '@/components/Skeleton';
-import { MapPin, Plus, ChevronRight, Package, CreditCard, Check } from 'lucide-react';
+import { MapPin, Plus, ChevronRight, Package, CreditCard, Check, Tag, Loader2, X } from 'lucide-react';
 
 export default function BuyNow() {
     const { user } = useAuth();
@@ -38,6 +40,16 @@ export default function BuyNow() {
     const [showAddressForm, setShowAddressForm] = useState(false);
     const [loading, setLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
+
+    // Shipping & Calculation State
+    const [shippingSettings, setShippingSettings] = useState(null);
+    const [shippingCost, setShippingCost] = useState(0);
+
+    // Coupon states
+    const [couponCode, setCouponCode] = useState("");
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
+    const [couponLoading, setCouponLoading] = useState(false);
+    const [couponError, setCouponError] = useState(null);
 
     // Address form
     const [addressForm, setAddressForm] = useState({
@@ -62,7 +74,7 @@ export default function BuyNow() {
         }
     }, [user, navigate]);
 
-    // Load product and addresses
+    // Load product, addresses, and shipping settings
     useEffect(() => {
         if (!productId || !user) return;
 
@@ -74,21 +86,29 @@ export default function BuyNow() {
                 const prod = prodRes.data || prodRes.product || prodRes;
                 setProduct(prod);
 
+                // Load shipping settings
+                const shippingRes = await fetchShippingSettings();
+                setShippingSettings(shippingRes?.settings || null);
+
                 // Load saved addresses
                 const addrs = await fetchAddresses();
                 setAddresses(addrs || []);
 
-                // Auto-select first address if available
-                if (addrs && addrs.length > 0) {
-                    setSelectedAddress(addrs[0]._id);
+                // Filter valid addresses
+                const validAddrs = (addrs || []).filter(a => a.street && a.city && a.phone);
+
+                // Auto-select first valid address if available
+                if (validAddrs.length > 0) {
+                    setSelectedAddress(validAddrs[0]._id);
                 } else {
+                    // If we have addresses but none are valid (empty/incomplete), show form
                     setShowAddressForm(true);
                 }
             } catch (error) {
                 console.error('Error loading data:', error);
                 toast({
                     title: 'Error',
-                    description: 'Failed to load product details',
+                    description: 'Failed to load details',
                     variant: 'destructive'
                 });
             } finally {
@@ -105,7 +125,8 @@ export default function BuyNow() {
 
         try {
             setProcessing(true);
-            const newAddr = await addAddress(addressForm);
+            const response = await addAddress(addressForm);
+            const newAddr = response.address || response;
             setAddresses([...(addresses || []), newAddr]);
             setSelectedAddress(newAddr._id);
             setShowAddressForm(false);
@@ -133,6 +154,62 @@ export default function BuyNow() {
         }
     };
 
+    // Calculate totals
+    const initialTotal = product ? product.price * quantity : 0;
+
+    // Update shipping cost whenever total or settings change
+    useEffect(() => {
+        if (shippingSettings) {
+            if (shippingSettings.freeShippingThreshold && initialTotal >= shippingSettings.freeShippingThreshold) {
+                setShippingCost(0);
+            } else {
+                setShippingCost(shippingSettings.shippingCost || 0);
+            }
+        }
+    }, [initialTotal, shippingSettings]);
+
+    const discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
+    const finalTotal = Math.max(0, initialTotal + shippingCost - discount);
+
+    // Coupon logic
+    useEffect(() => {
+        if (appliedCoupon && initialTotal < appliedCoupon.minPurchase) {
+            setAppliedCoupon(null);
+            setCouponError(`Coupon removed: Minimum purchase of ₹${appliedCoupon.minPurchase} required`);
+            toast({ title: "Coupon Removed", description: "Minimum purchase requirement not met", variant: "destructive" });
+        }
+    }, [initialTotal, appliedCoupon]);
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) return;
+        setCouponLoading(true);
+        setCouponError(null);
+        try {
+            const res = await validateCoupon(couponCode, initialTotal);
+            if (res.isValid) {
+                setAppliedCoupon({
+                    code: res.couponCode,
+                    discountAmount: res.discountAmount,
+                    minPurchase: res.minPurchase
+                });
+                toast({ title: "Success", description: `Coupon ${res.couponCode} applied!` });
+                setCouponCode("");
+            }
+        } catch (error) {
+            console.error(error);
+            setCouponError(error.response?.data?.message || "Invalid coupon");
+            setAppliedCoupon(null);
+        } finally {
+            setCouponLoading(false);
+        }
+    };
+
+    const removeCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponError(null);
+        toast({ title: "Removed", description: "Coupon removed" });
+    };
+
     // Handle continue to payment
     const handleContinueToPayment = () => {
         if (!selectedAddress) {
@@ -153,15 +230,16 @@ export default function BuyNow() {
         try {
             setProcessing(true);
 
-            const totalPrice = product.price * quantity;
-
-            // Create Razorpay order
+            // Create Razorpay order with DISCOUNTED amount + SHIPPING
             const orderData = await createRazorpayOrder({
-                amount: totalPrice,
+                amount: finalTotal, // Send the final discounted amount
                 productName: product.name || product.title,
                 selectedAddressId: selectedAddress,
                 productId: product._id || product.id,
-                quantity: quantity
+                quantity: quantity,
+                couponCode: appliedCoupon?.code,
+                discountAmount: appliedCoupon?.discountAmount,
+                shippingCost: shippingCost
             });
 
             // Ensure Razorpay SDK is loaded
@@ -257,8 +335,9 @@ export default function BuyNow() {
         );
     }
 
-    const totalPrice = product.price * quantity;
     const selectedAddr = addresses?.find(a => a._id === selectedAddress);
+    // Filter useful addresses for display
+    const validAddresses = addresses?.filter(a => a.street && a.city && a.phone) || [];
 
     return (
         <div className="min-h-screen flex flex-col bg-muted/30">
@@ -298,10 +377,10 @@ export default function BuyNow() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                        {/* Address List */}
-                                        {!showAddressForm && addresses && addresses.length > 0 && (
+                                        {/* Address List - Only show valid addresses */}
+                                        {!showAddressForm && validAddresses.length > 0 && (
                                             <RadioGroup value={selectedAddress} onValueChange={setSelectedAddress}>
-                                                {addresses.map((addr) => (
+                                                {validAddresses.map((addr) => (
                                                     <Label
                                                         key={addr._id}
                                                         htmlFor={addr._id}
@@ -309,14 +388,22 @@ export default function BuyNow() {
                                                     >
                                                         <RadioGroupItem value={addr._id} id={addr._id} className="mt-1" />
                                                         <div className="flex-1">
-                                                            <p className="font-medium">{addr.phone}</p>
+                                                            <p className="font-medium">{addr.fullName}</p>
                                                             <p className="text-sm text-muted-foreground mt-1">
                                                                 {addr.street}, {addr.city}, {addr.state} {addr.postalCode}
                                                             </p>
+                                                            <p className="text-sm text-muted-foreground">Phone: {addr.phone}</p>
                                                         </div>
                                                     </Label>
                                                 ))}
                                             </RadioGroup>
+                                        )}
+
+                                        {/* If no valid addresses but we are not showing form, show message */}
+                                        {!showAddressForm && validAddresses.length === 0 && addresses.length > 0 && (
+                                            <div className="text-center py-4 text-muted-foreground">
+                                                Please add a valid delivery address.
+                                            </div>
                                         )}
 
                                         {/* Add New Address Button */}
@@ -441,6 +528,9 @@ export default function BuyNow() {
                                                     <div>
                                                         <p className="font-medium mb-1">Delivering to:</p>
                                                         <p className="text-sm text-muted-foreground">
+                                                            {selectedAddr.fullName}
+                                                        </p>
+                                                        <p className="text-sm text-muted-foreground">
                                                             {selectedAddr.street}, {selectedAddr.city}, {selectedAddr.state} {selectedAddr.postalCode}
                                                         </p>
                                                         <p className="text-sm text-muted-foreground mt-1">Phone: {selectedAddr.phone}</p>
@@ -474,7 +564,7 @@ export default function BuyNow() {
                                             className="w-full"
                                             size="lg"
                                         >
-                                            {processing ? 'Processing...' : `Pay ₹${totalPrice.toFixed(2)}`}
+                                            {processing ? 'Processing...' : `Pay ₹${finalTotal.toFixed(2)}`}
                                         </Button>
                                     </CardContent>
                                 </Card>
@@ -510,12 +600,58 @@ export default function BuyNow() {
                                     <div className="space-y-2 text-sm">
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">Price ({quantity} item{quantity > 1 ? 's' : ''})</span>
-                                            <span>₹{(product.price * quantity).toFixed(2)}</span>
+                                            <span>₹{initialTotal.toFixed(2)}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">Delivery</span>
-                                            <span className="text-green-600 font-medium">FREE</span>
+                                            <span className={shippingCost === 0 ? "text-green-600 font-medium" : ""}>
+                                                {shippingCost === 0 ? "FREE" : `₹${shippingCost.toFixed(2)}`}
+                                            </span>
                                         </div>
+                                        {appliedCoupon && (
+                                            <div className="flex justify-between text-green-600 font-medium animate-in fade-in slide-in-from-right-4">
+                                                <span className="flex items-center gap-1"><Tag className="w-3 h-3" /> Discount ({appliedCoupon.code})</span>
+                                                <span>-₹{appliedCoupon.discountAmount.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Shipping Info */}
+                                    {shippingCost === 0 && shippingSettings?.freeShippingThreshold && (
+                                        <div className="bg-green-50 border border-green-200 rounded p-2 text-xs text-green-700">
+                                            ✓ {shippingSettings?.description || "Free shipping applied"}
+                                        </div>
+                                    )}
+                                    {shippingCost > 0 && shippingSettings?.freeShippingThreshold && (
+                                        <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-blue-700">
+                                            Add ₹{(shippingSettings.freeShippingThreshold - initialTotal).toFixed(0)} more for free shipping
+                                        </div>
+                                    )}
+
+                                    {/* Coupon Input */}
+                                    <div className="pt-2 pb-2">
+                                        {!appliedCoupon ? (
+                                            <div className="space-y-2">
+                                                <div className="flex gap-2">
+                                                    <Input
+                                                        placeholder="Coupon Code"
+                                                        value={couponCode}
+                                                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                                        className="h-9 uppercase"
+                                                        onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
+                                                    />
+                                                    <Button size="sm" onClick={handleApplyCoupon} disabled={couponLoading || !couponCode.trim()}>
+                                                        {couponLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Apply"}
+                                                    </Button>
+                                                </div>
+                                                {couponError && <p className="text-xs text-destructive">{couponError}</p>}
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+                                                <span className="font-semibold">{appliedCoupon.code} applied</span>
+                                                <button onClick={removeCoupon} className="text-green-700 hover:text-green-900"><X className="w-4 h-4" /></button>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <Separator />
@@ -523,7 +659,7 @@ export default function BuyNow() {
                                     {/* Total */}
                                     <div className="flex justify-between items-center pt-2">
                                         <span className="font-bold text-lg">Total</span>
-                                        <span className="font-bold text-2xl">₹{totalPrice.toFixed(2)}</span>
+                                        <span className="font-bold text-2xl">₹{finalTotal.toFixed(2)}</span>
                                     </div>
 
                                     {/* Trust Badge */}

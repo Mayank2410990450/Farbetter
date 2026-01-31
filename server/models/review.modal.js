@@ -11,7 +11,8 @@ const reviewSchema = new Schema(
     product: {
       type: Schema.Types.ObjectId,
       ref: "Product",
-      required: true
+      required: true,
+      index: true
     },
     rating: {
       type: Number,

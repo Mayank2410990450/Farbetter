@@ -13,6 +13,8 @@ export default function Hero() {
           src={heroImage}
           alt="Assorted protein snacks"
           className="w-full h-full object-cover"
+          loading="eager"
+          fetchpriority="high"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/60" />
       </div>

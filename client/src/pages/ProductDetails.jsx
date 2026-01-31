@@ -52,6 +52,8 @@ export default function ProductDetails() {
       try {
         setLoading(true);
         setError(null);
+
+        // 1. Fetch Product (Critical)
         const prodRes = await fetchProduct(productId);
         const prod = prodRes.data || prodRes.product || prodRes;
 
@@ -60,34 +62,41 @@ export default function ProductDetails() {
         }
 
         setProduct(prod);
+        setLoading(false); // SHOW CONTENT IMMEDIATELY
 
-        // Fetch related products based on category
+        // 2. Fetch Reviews & Related (Non-Blocking)
+        const promises = [];
+
+        // Reviews
+        promises.push(
+          fetchProductReviews(productId, { limit: 100 })
+            .then(res => setReviews(res.reviews || []))
+            .catch(e => console.error("Failed to load reviews", e))
+        );
+
+        // Related Products
         if (prod.category) {
           const categoryId = typeof prod.category === 'object' ? prod.category._id : prod.category;
-          try {
-            // In new API this returns { products: [...], ... } usually
-            const relatedData = await fetchProducts({ category: categoryId });
-            const list = Array.isArray(relatedData)
-              ? relatedData
-              : (relatedData.products || []);
-
-            // Filter out current product
-            setRelatedProducts(list.filter(p => p._id !== prod._id));
-          } catch (e) {
-            console.error("Failed to load related products", e);
-            setRelatedProducts([]);
-          }
+          promises.push(
+            fetchProducts({ category: categoryId, limit: 10 })
+              .then(relatedData => {
+                const list = Array.isArray(relatedData)
+                  ? relatedData
+                  : (relatedData.products || []);
+                setRelatedProducts(list.filter(p => p._id !== prod._id));
+              })
+              .catch(e => console.error("Failed to load related products", e))
+          );
         }
 
-        const reviewsRes = await fetchProductReviews(productId, { limit: 100 });
-        setReviews(reviewsRes.reviews || []);
+        await Promise.all(promises);
+
       } catch (err) {
         console.error("Error loading product:", err);
         const errorMsg = err?.response?.status === 404
           ? "Product not found. It may have been removed or the ID is invalid."
           : err?.response?.data?.message || "Failed to load product details";
         setError(errorMsg);
-      } finally {
         setLoading(false);
       }
     };
