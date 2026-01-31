@@ -379,7 +379,12 @@ export default function BuyNow() {
                                     <CardContent className="space-y-4">
                                         {/* Address List - Only show valid addresses */}
                                         {!showAddressForm && validAddresses.length > 0 && (
-                                            <RadioGroup value={selectedAddress} onValueChange={setSelectedAddress}>
+                                            <RadioGroup
+                                                // Force remount on address change to prevent extension conflicts (Error #299)
+                                                key={addresses.length}
+                                                value={selectedAddress}
+                                                onValueChange={setSelectedAddress}
+                                            >
                                                 {validAddresses.map((addr) => (
                                                     <Label
                                                         key={addr._id}
