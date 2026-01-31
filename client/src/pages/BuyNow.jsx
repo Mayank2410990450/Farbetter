@@ -16,6 +16,7 @@ import { createRazorpayOrder, verifyRazorpayPayment } from '@/api/payment';
 import { placeOrder } from '@/api/order';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { SkeletonCheckout } from '@/components/Skeleton';
 import { MapPin, Plus, ChevronRight, Package, CreditCard, Check } from 'lucide-react';
 
 export default function BuyNow() {
@@ -40,6 +41,7 @@ export default function BuyNow() {
 
     // Address form
     const [addressForm, setAddressForm] = useState({
+        fullName: '',
         street: '',
         city: '',
         state: '',
@@ -108,6 +110,7 @@ export default function BuyNow() {
             setSelectedAddress(newAddr._id);
             setShowAddressForm(false);
             setAddressForm({
+                fullName: '',
                 street: '',
                 city: '',
                 state: '',
@@ -155,8 +158,22 @@ export default function BuyNow() {
             // Create Razorpay order
             const orderData = await createRazorpayOrder({
                 amount: totalPrice,
-                productName: product.name || product.title
+                productName: product.name || product.title,
+                selectedAddressId: selectedAddress,
+                productId: product._id || product.id,
+                quantity: quantity
             });
+
+            // Ensure Razorpay SDK is loaded
+            if (!window.Razorpay) {
+                await new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                    s.onload = resolve;
+                    s.onerror = reject;
+                    document.head.appendChild(s);
+                });
+            }
 
             // Initialize Razorpay
             const options = {
@@ -173,33 +190,17 @@ export default function BuyNow() {
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
-                        });
-
-                        // Place order
-                        const orderItems = [{
-                            product: product._id,
-                            quantity: quantity,
-                            price: product.price,
-                            name: product.name || product.title,
-                            image: product.images?.[0] || product.image
-                        }];
-
-                        const placedOrder = await placeOrder({
-                            items: orderItems,
-                            shippingAddress: selectedAddress,
-                            paymentMethod: 'razorpay',
-                            totalPrice: totalPrice,
-                            paymentId: response.razorpay_payment_id
+                            dbOrderId: orderData.dbOrderId
                         });
 
                         toast({
                             title: 'Order Placed Successfully!',
-                            description: `Order ID: ${placedOrder._id.slice(-8)}`,
+                            description: `Order ID: ${orderData.dbOrderId.slice(-8)}`,
                             duration: 5000
                         });
 
                         // Navigate to order success page
-                        navigate(`/user/orders/${placedOrder._id}`);
+                        navigate(`/user/orders/${orderData.dbOrderId}`);
 
                     } catch (error) {
                         console.error('Payment verification failed:', error);
@@ -213,10 +214,10 @@ export default function BuyNow() {
                 prefill: {
                     name: user.name,
                     email: user.email,
-                    contact: addressForm.phone
+                    contact: addressForm.phone || user.phone || ''
                 },
                 theme: {
-                    color: '#000000'
+                    color: '#F97316'
                 },
                 modal: {
                     ondismiss: function () {
@@ -248,11 +249,8 @@ export default function BuyNow() {
         return (
             <div className="min-h-screen flex flex-col">
                 <Header />
-                <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                        <p className="text-muted-foreground">Loading...</p>
-                    </div>
+                <div className="container mx-auto px-4 py-8 flex-1">
+                    <SkeletonCheckout />
                 </div>
                 <Footer />
             </div>
@@ -337,6 +335,16 @@ export default function BuyNow() {
                                         {showAddressForm && (
                                             <form onSubmit={handleAddAddress} className="space-y-4 border-t pt-4">
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="md:col-span-2">
+                                                        <Label htmlFor="fullName">Full Name</Label>
+                                                        <Input
+                                                            id="fullName"
+                                                            value={addressForm.fullName}
+                                                            onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
+                                                            placeholder="John Doe"
+                                                            required
+                                                        />
+                                                    </div>
                                                     <div className="md:col-span-2">
                                                         <Label htmlFor="street">Street Address</Label>
                                                         <Input

@@ -27,67 +27,51 @@ const OptimizedImage = ({
     height,
     className = '',
     objectFit,
-    priority = false,
+    priority = false, // If true, eager load and high priority
     onLoad,
     onError,
-    placeholder,
-    quality = 75,
+    placeholder = 'blur', // blur, empty
+    quality = 'auto',
     ...props
 }) => {
     const [isLoaded, setIsLoaded] = useState(false);
     const [hasError, setHasError] = useState(false);
-    const [currentSrc, setCurrentSrc] = useState('');
     const imgRef = useRef(null);
 
-    // Generate optimized image URL
-    const getOptimizedSrc = (originalSrc) => {
+    // Generate optimized image URL for Cloudinary
+    const getOptimizedSrc = (originalSrc, w) => {
         if (!originalSrc) return '';
-
-        // If it's a Cloudinary URL, use their transformations
         if (originalSrc.includes('cloudinary')) {
-            return originalSrc.replace('/upload/', `/upload/w_800,h_800,c_fill,q_auto,f_auto/`);
-        }
+            // Default params
+            let params = `q_${quality},f_auto`;
 
-        // For local images, return as-is (Vite handles optimization in build)
+            // Add resize params if width/height provided
+            if (w) {
+                params += `,w_${w}`;
+            } else if (width) {
+                // Use prop width if strictly provided (removing px if string)
+                const cleanW = String(width).replace('px', '');
+                if (!isNaN(cleanW)) params += `,w_${cleanW}`;
+            }
+            // If height provided and object fit is cover, we might want to crop
+            if (height && objectFit === 'cover') {
+                const cleanH = String(height).replace('px', '');
+                if (!isNaN(cleanH)) params += `,h_${cleanH},c_fill`;
+            }
+
+            return originalSrc.replace('/upload/', `/upload/${params}/`);
+        }
         return originalSrc;
     };
 
-    useEffect(() => {
-        const optimizedSrc = getOptimizedSrc(src);
-        setCurrentSrc(optimizedSrc);
-    }, [src]);
+    const optimizedSrc = getOptimizedSrc(src);
 
-    // Intersection Observer for lazy loading
-    useEffect(() => {
-        if (priority || !imgRef.current) return;
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting && currentSrc) {
-                        const img = entry.target;
-                        if (!img.src) {
-                            img.src = currentSrc;
-                        }
-                        observer.unobserve(img);
-                    }
-                });
-            },
-            {
-                rootMargin: '50px',
-            }
-        );
-
-        if (imgRef.current) {
-            observer.observe(imgRef.current);
-        }
-
-        return () => {
-            if (imgRef.current) {
-                observer.unobserve(imgRef.current);
-            }
-        };
-    }, [currentSrc, priority]);
+    // Generate srcSet for responsive images if it's strictly a Cloudinary image
+    const generateSrcSet = () => {
+        if (!src || !src.includes('cloudinary')) return undefined;
+        const widths = [320, 640, 768, 1024, 1280];
+        return widths.map(w => `${getOptimizedSrc(src, w)} ${w}w`).join(', ');
+    };
 
     const handleLoad = (e) => {
         setIsLoaded(true);
@@ -102,8 +86,8 @@ const OptimizedImage = ({
 
     if (hasError) {
         return (
-            <div className={cn('flex items-center justify-center bg-muted/10 text-muted-foreground', className)}>
-                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className={cn('flex items-center justify-center bg-muted/10 text-muted-foreground', className)} style={{ width, height }}>
+                <svg className="w-8 h-8 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -111,18 +95,22 @@ const OptimizedImage = ({
         );
     }
 
-    // Build style object similar to regular img
-    const style = {};
-    if (objectFit) style.objectFit = objectFit;
-    if (!isLoaded && placeholder === 'blur') style.opacity = 0;
-    if (isLoaded) style.opacity = 1;
-    if (style.opacity !== undefined) style.transition = 'opacity 0.3s ease-in-out';
+    // Styles for smooth transition
+    const baseStyle = {
+        transition: 'opacity 0.4s ease-out',
+        opacity: isLoaded ? 1 : (placeholder === 'blur' ? 0.05 : 1), // Start low opacity if blur
+        objectFit: objectFit || 'cover',
+    };
+
+    // Default sizes for typical grid layouts if not provided
+    const defaultSizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw";
 
     return (
         <img
             ref={imgRef}
-            src={priority ? currentSrc : undefined}
-            data-src={!priority ? currentSrc : undefined}
+            src={optimizedSrc}
+            srcSet={generateSrcSet()}
+            sizes={props.sizes || defaultSizes}
             alt={alt}
             width={width}
             height={height}
@@ -130,8 +118,8 @@ const OptimizedImage = ({
             decoding="async"
             onLoad={handleLoad}
             onError={handleError}
-            style={style}
-            className={className}
+            className={cn(className, "will-change-opacity")}
+            style={{ ...baseStyle }}
             {...props}
         />
     );

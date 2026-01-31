@@ -34,11 +34,11 @@ exports.createOrder = async (req, res) => {
     const mongoose = require('mongoose');
     const userId = new mongoose.Types.ObjectId(userIdString);
 
-    const { amount, selectedAddressId, shippingCost, couponCode, discountAmount = 0 } = req.body;
+    const { amount, selectedAddressId, shippingCost, couponCode, discountAmount = 0, productId, quantity } = req.body;
     let finalAmount = Number(amount) || 0;
     const shippingCostNum = Number(shippingCost) || 0;
 
-    console.log(`[DEBUG] createOrder params: amount=${finalAmount}, address=${selectedAddressId}`);
+    console.log(`[DEBUG] createOrder params: amount=${finalAmount}, address=${selectedAddressId}, productId=${productId}`);
 
     // Razorpay requires minimum 1 INR (100 paise)
     if (finalAmount < 1) {
@@ -46,43 +46,70 @@ exports.createOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Order amount must be at least ₹1 for online payment' });
     }
 
-    // 1. Fetch Cart & Address
-    const cart = await Cart.findOne({ user: userId }).populate('items.product');
-
+    // 1. Fetch Cart & Address (or Product if Buy Now)
     // Ensure Address model is available
     const address = await Address.findById(selectedAddressId);
 
-    if (!cart || !cart.items || cart.items.length === 0) {
-      console.error(`[DEBUG] Cart empty or not found for user ${userIdString}`);
-      return res.status(400).json({ success: false, message: 'Cart is empty' });
-    }
     if (!address) {
       console.error(`[DEBUG] Address not found: ${selectedAddressId}`);
       return res.status(400).json({ success: false, message: 'Invalid address' });
     }
+    console.log('[DEBUG] Address found:', address._id);
 
     // 2. Prepare Order Items
     const orderItems = [];
     let calculatedSubtotal = 0;
-    for (const item of cart.items) {
-      if (!item.product) continue;
+
+    // Check if Direct Buy (Buy Now)
+    if (productId && quantity) {
+      const Product = require("../models/Product.modal");
+      const product = await Product.findById(productId);
+
+      if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+      if (product.stock < quantity) {
+        return res.status(400).json({ success: false, message: `Out of stock: ${product.title}` });
+      }
+      console.log('[DEBUG] Product fetch valid:', product.title);
 
       orderItems.push({
-        product: item.product._id,
-        quantity: item.quantity,
-        price: item.product.price
+        product: product._id,
+        quantity: Number(quantity),
+        price: product.price
       });
-      calculatedSubtotal += item.product.price * item.quantity;
+      calculatedSubtotal = product.price * Number(quantity);
+
+    } else {
+      // Cart Checkout Flow
+      const cart = await Cart.findOne({ user: userId }).populate('items.product');
+
+      if (!cart || !cart.items || cart.items.length === 0) {
+        console.error(`[DEBUG] Cart empty or not found for user ${userIdString}`);
+        return res.status(400).json({ success: false, message: 'Cart is empty' });
+      }
+
+      for (const item of cart.items) {
+        if (!item.product) continue;
+
+        // Check stock
+        if (item.product.stock < item.quantity) {
+          return res.status(400).json({ success: false, message: `Out of stock: ${item.product.title}` });
+        }
+
+        orderItems.push({
+          product: item.product._id,
+          quantity: item.quantity,
+          price: item.product.price
+        });
+        calculatedSubtotal += item.product.price * item.quantity;
+      }
     }
 
-    // Optional: Verify amount matches somewhat (allowing for shipping/coupons)
-    // const expectedTotal = calculatedSubtotal + shippingCostNum - discountAmount;
-    // if (Math.abs(expectedTotal - finalAmount) > 1.0) {
-    //   console.warn(`[WARNING] createOrder amount mismatch: req=${finalAmount}, calc=${expectedTotal}`);
-    //   // We could block here for security, but for now we continue
-    // }
+    // Optional: Verify amount...
 
     // 3. Create Pending MongoDB Order
+    console.log('[DEBUG] Creating DB order...');
     const dbOrder = await Order.create({
       user: userId,
       items: orderItems,
@@ -93,6 +120,7 @@ exports.createOrder = async (req, res) => {
       paymentStatus: 'pending',
       orderStatus: 'pending_payment' // Special status indicating not yet verified
     });
+    console.log(`[DEBUG] DB Order created: ${dbOrder._id}`);
 
     // 4. Create Razorpay Order
     const options = {
@@ -105,8 +133,11 @@ exports.createOrder = async (req, res) => {
       }
     };
 
+    console.log('[DEBUG] Razorpay options:', JSON.stringify(options));
+
     try {
       const rpOrder = await razorpay.orders.create(options);
+      console.log('[DEBUG] Razorpay order created:', rpOrder.id);
 
       // Save Razorpay Order ID to DB Order for reference (optional, but good for tracking)
       dbOrder.paymentId = rpOrder.id;
@@ -152,7 +183,7 @@ exports.verifyPayment = async (req, res) => {
     // Find the existing pending order
     // If dbOrderId is provided, use it. Otherwise try to find one with this Razorpay Order ID?
     // We prefer dbOrderId.
-    const order = await Order.findById(dbOrderId || req.body.receipt); // fallback
+    const order = await Order.findById(dbOrderId || req.body.receipt).populate('items.product'); // fallback and populate product for stock update
 
     if (!order) {
       // Fallback: If for some reason checking out without dbOrderId (legacy), we might fail.
@@ -169,16 +200,31 @@ exports.verifyPayment = async (req, res) => {
     order.paymentId = razorpay_payment_id; // Update with actual Payment ID
     await order.save();
 
-    // Reduce stock and clear cart (Logic moved from create to verify)
-    const cart = await Cart.findOne({ user: userId }).populate('items.product');
-    if (cart) {
-      for (const item of cart.items) {
-        if (item.product) {
-          item.product.stock = Math.max(0, item.product.stock - item.quantity);
-          await item.product.save();
-        }
+    // Reduce stock based on ORDER ITEMS (Source of truth)
+    const Product = require("../models/Product.modal");
+    for (const item of order.items) {
+      if (item.product) {
+        // Since we populated, item.product is the doc. But updateMany/findByIdAndUpdate works on ID.
+        // Or strictly find by ID.
+        await Product.findByIdAndUpdate(item.product._id || item.product, {
+          $inc: { stock: -item.quantity }
+        });
       }
-      cart.items = [];
+    }
+
+    // Remove bought items from Cart (if they exist there)
+    const cart = await Cart.findOne({ user: userId });
+    if (cart) {
+      // Filter out items that were just bought
+      cart.items = cart.items.filter(cartItem => {
+        const bought = order.items.some(orderItem => {
+          // handling populated vs unpopulated IDs comparison
+          const orderProdId = orderItem.product._id ? orderItem.product._id.toString() : orderItem.product.toString();
+          const cartProdId = cartItem.product.toString();
+          return orderProdId === cartProdId;
+        });
+        return !bought; // Keep if not bought
+      });
       await cart.save();
     }
 

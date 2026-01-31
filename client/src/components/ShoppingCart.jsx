@@ -9,9 +9,10 @@ import { useAuth } from "@/context/AuthContext";
 import { fetchProduct } from "@/api/product";
 import { fetchAddresses } from "@/api/address";
 import { getOptimizedImageUrl } from "@/lib/utils";
+import { SkeletonCartItem } from "@/components/Skeleton";
 
 export default function ShoppingCartComponent() {
-  const { items = [], updateQuantity, removeItem, clearCart } = useCart();
+  const { items = [], updateQuantity, removeItem, clearCart, loading } = useCart();
   const navigate = useNavigate();
   const [updatingId, setUpdatingId] = useState(null);
   const [defaultAddressId, setDefaultAddressId] = useState(null);
@@ -139,7 +140,13 @@ export default function ShoppingCartComponent() {
           </SheetDescription>
         </SheetHeader>
 
-        {safeItems.length === 0 ? (
+        {loading ? (
+          <div className="flex-1 overflow-y-auto py-4 space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <SkeletonCartItem key={i} />
+            ))}
+          </div>
+        ) : safeItems.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
             <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
             <p className="text-lg font-semibold mb-2">Your cart is empty</p>

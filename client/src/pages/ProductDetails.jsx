@@ -20,6 +20,7 @@ import { getStockStatus, getStockMessage } from "@/lib/stockUtils";
 import { SkeletonProductDetails } from "@/components/Skeleton";
 import ReviewModal from "@/components/ReviewModal";
 import { getOptimizedImageUrl } from "@/lib/utils";
+import OptimizedImage from "@/components/OptimizedImage";
 
 export default function ProductDetails() {
   const { productId } = useParams();
@@ -291,10 +292,12 @@ export default function ProductDetails() {
             {/* Product Image Gallery */}
             <div className="flex flex-col gap-4 lg:col-span-5">
               <div className="relative w-full aspect-[4/5] max-h-[500px] rounded-lg overflow-hidden bg-white dark:bg-card border shadow-sm group mx-auto">
-                <img
-                  src={getOptimizedImageUrl(product?.images?.[selectedImage] || product?.image || product?.images?.[0] || "", 800)}
+                <OptimizedImage
+                  src={product?.images?.[selectedImage] || product?.image || product?.images?.[0] || ""}
                   alt={product?.name}
-                  loading="eager"
+                  priority={true}
+                  width={800}
+                  objectFit="contain"
                   className="w-full h-full object-contain p-8 mix-blend-multiply dark:mix-blend-normal transition-transform duration-500 group-hover:scale-105"
                 />
 
@@ -317,10 +320,11 @@ export default function ProductDetails() {
                         : 'border-transparent bg-slate-50 hover:bg-slate-100'
                         }`}
                     >
-                      <img
-                        src={getOptimizedImageUrl(img, 160)}
+                      <OptimizedImage
+                        src={img}
                         alt={`${product?.name} ${idx + 1}`}
-                        loading="lazy"
+                        width={160}
+                        objectFit="contain"
                         className="w-full h-full object-contain p-2 mix-blend-multiply dark:mix-blend-normal"
                       />
                     </button>
@@ -631,9 +635,11 @@ export default function ProductDetails() {
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-3 z-50 lg:hidden flex items-center justify-between gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] safe-area-bottom">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded border bg-white overflow-hidden shrink-0">
-            <img
-              src={getOptimizedImageUrl(productImage, 100)}
+            <OptimizedImage
+              src={productImage}
               alt={productTitle}
+              width={100}
+              objectFit="contain"
               className="w-full h-full object-contain p-1 mix-blend-multiply dark:mix-blend-normal"
             />
           </div>

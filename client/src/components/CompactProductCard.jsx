@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import OptimizedImage from "@/components/OptimizedImage";
 
 export default function CompactProductCard({ product, isWishlisted, onToggleWishlist }) {
     const navigate = useNavigate();
@@ -53,11 +54,13 @@ export default function CompactProductCard({ product, isWishlisted, onToggleWish
 
             {/* Image Container */}
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-white dark:bg-zinc-900/50">
-                <img
+                <OptimizedImage
                     src={displayImage}
                     alt={displayName}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    width={300}
+                    objectFit="contain"
+                    sizes="(max-width: 768px) 160px, (max-width: 1024px) 33vw, 25vw"
+                    className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
                 />
                 {(product?.stock === 0 || product?.soldOut) && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-[1px]">

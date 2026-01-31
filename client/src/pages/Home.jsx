@@ -9,6 +9,7 @@ import CustomerReviews from "@/components/CustomerReviews";
 import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
 import SEOHelmet from "@/components/SEOHelmet";
+import { SkeletonGrid } from "@/components/Skeleton";
 
 import { fetchProducts } from "@/api/product";
 import api from "@/api/apiClient";
@@ -71,7 +72,22 @@ export default function Home() {
 
         <main className="flex-1">
           {loading ? (
-            <p className="text-center py-10">Loading...</p>
+            <div className="space-y-16 py-8 md:py-16 container mx-auto px-4">
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+                  <div className="h-8 w-24 bg-muted animate-pulse rounded" />
+                </div>
+                <SkeletonGrid count={4} />
+              </div>
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+                  <div className="h-8 w-24 bg-muted animate-pulse rounded" />
+                </div>
+                <SkeletonGrid count={4} />
+              </div>
+            </div>
           ) : (
             <>
               <FeaturedProducts products={featuredProducts} title="Best Sellers" />

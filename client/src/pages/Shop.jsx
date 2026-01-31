@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import BackButton from "@/components/BackButton";
 import ProductGrid from "@/components/ProductGrid";
 import SEOHelmet from "@/components/SEOHelmet";
+import { SkeletonGrid, SkeletonText } from "@/components/Skeleton";
 import { fetchProducts } from "@/api/product";
 import { Button } from "@/components/ui/button";
 
@@ -78,7 +79,24 @@ export default function Shop() {
         {/* Product Grid */}
         <main className="flex-1">
           {isLoading ? (
-            <div className="py-24 text-center">Loading products...</div>
+            <div className="container mx-auto px-4 py-8">
+              <div className="flex gap-8">
+                {/* Sidebar Skeleton */}
+                <aside className="hidden lg:block w-64 space-y-6">
+                  <div className="h-6 w-24 bg-muted animate-pulse rounded" />
+                  <SkeletonText lines={6} />
+                </aside>
+
+                {/* Main Content Skeleton */}
+                <div className="flex-1">
+                  <div className="flex justify-between mb-6">
+                    <div className="h-6 w-32 bg-muted animate-pulse rounded" />
+                    <div className="h-10 w-[180px] bg-muted animate-pulse rounded" />
+                  </div>
+                  <SkeletonGrid count={9} />
+                </div>
+              </div>
+            </div>
           ) : isError ? (
             <div className="py-24 text-center text-red-500">Error loading products: {error.message}</div>
           ) : (

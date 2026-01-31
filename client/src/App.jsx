@@ -11,6 +11,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Suspense, lazy, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { HelmetProvider } from 'react-helmet-async';
 import { trackVisit } from "@/api/analytics";
 
 // Analytics Tracker Component (Deferred for Performance)
@@ -136,18 +137,20 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TooltipProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <OrdersProvider>
-                  <Toaster />
-                  <Router />
-                </OrdersProvider>
-              </WishlistProvider>
-            </CartProvider>
-          </TooltipProvider>
-        </AuthProvider>
+        <HelmetProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <OrdersProvider>
+                    <Toaster />
+                    <Router />
+                  </OrdersProvider>
+                </WishlistProvider>
+              </CartProvider>
+            </TooltipProvider>
+          </AuthProvider>
+        </HelmetProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );

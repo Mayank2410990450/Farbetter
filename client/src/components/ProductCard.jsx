@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useWishlist } from "@/context/WishlistContext";
 import QuickViewModal from "@/components/QuickViewModal";
 import { getStockStatus } from "@/lib/stockUtils";
+import OptimizedImage from "@/components/OptimizedImage";
 
 export default function ProductCard({
   product,
@@ -130,11 +131,14 @@ export default function ProductCard({
       {/* Product Image */}
       <div className="relative overflow-hidden bg-white cursor-pointer group" onClick={() => navigate(`/product/${pid}`)}>
         <div className="w-full aspect-[3/4] relative overflow-hidden bg-white dark:bg-card rounded-none">
-          <img
+          <OptimizedImage
             src={displayImage}
             alt={displayName}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            width={300} // Approximate width for grid item
+            height={400} // Aspect 3:4
+            objectFit="contain"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
             data-testid={`img-product-${pid}`}
           />
         </div>

@@ -14,6 +14,7 @@ import { Heart, Trash2, Truck, Lock, MapPin, Tag, Loader2, X } from "lucide-reac
 import { getOptimizedImageUrl } from "@/lib/utils";
 import { validateCoupon } from "@/api/coupon";
 import { Input } from "@/components/ui/input";
+import { SkeletonCheckout } from "@/components/Skeleton";
 
 import {
   AlertDialog,
@@ -307,8 +308,11 @@ export default function Checkout() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center">Loading checkout...</div>
+      <div className="container mx-auto px-4 py-8 lg:py-12">
+        <div className="mb-8">
+          <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+        </div>
+        <SkeletonCheckout />
       </div>
     );
   }

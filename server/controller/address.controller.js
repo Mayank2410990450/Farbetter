@@ -19,13 +19,32 @@ exports.addAddress = asyncHandler(async (req, res) => {
 
 // Get user addresses
 exports.getAddresses = asyncHandler(async (req, res) => {
-  const userId = new mongoose.Types.ObjectId(req.user.id);
-  const addresses = await Address.find({ user: userId }).sort({
-    isDefault: -1,
-    createdAt: -1
-  });
+  console.log('[DEBUG] getAddresses called');
+  // console.log('[DEBUG] req.user:', req.user);
 
-  res.json({ success: true, addresses });
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ success: false, message: "User not authenticated" });
+    }
+
+    if (!mongoose.isValidObjectId(req.user.id)) {
+      console.error('[DEBUG] Invalid User ID format:', req.user.id);
+      return res.status(400).json({ success: false, message: "Invalid user ID" });
+    }
+
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+    // console.log('[DEBUG] userId casted:', userId);
+
+    const addresses = await Address.find({ user: userId }).sort({
+      isDefault: -1,
+      createdAt: -1
+    });
+
+    res.json({ success: true, addresses });
+  } catch (err) {
+    console.error('[DEBUG] getAddresses Error:', err);
+    res.status(500).json({ success: false, message: "Failed to fetch addresses" });
+  }
 });
 
 // Set default address

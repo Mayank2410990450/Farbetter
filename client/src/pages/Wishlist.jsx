@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
 import SEOHelmet from "@/components/SEOHelmet";
+import { SkeletonGrid } from "@/components/Skeleton";
 
 export default function Wishlist() {
-    const { wishlist } = useWishlist();
+    const { wishlist, loading } = useWishlist();
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -26,7 +27,9 @@ export default function Wishlist() {
             <main className="flex-1 container mx-auto px-4 py-8 md:py-12">
                 <h1 className="text-3xl md:text-4xl font-bold mb-8">My Wishlist</h1>
 
-                {wishlist.length === 0 ? (
+                {loading ? (
+                    <SkeletonGrid count={8} />
+                ) : wishlist.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed rounded-lg bg-muted/30">
                         <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
                             <Heart className="w-8 h-8 text-muted-foreground" />
