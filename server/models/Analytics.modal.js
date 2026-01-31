@@ -26,6 +26,10 @@ const analyticsSchema = new mongoose.Schema({
         enum: ['mobile', 'desktop', 'tablet', 'unknown'],
         default: 'unknown'
     },
+    browser: String,
+    os: String,
+    country: String,
+    city: String,
     timestamp: {
         type: Date,
         default: Date.now,

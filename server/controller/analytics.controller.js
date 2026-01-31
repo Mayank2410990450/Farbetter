@@ -1,24 +1,49 @@
 const Analytics = require('../models/Analytics.modal');
 const asyncHandler = require('../middlewares/asyncHandler');
 
+const geoip = require('geoip-lite');
+const UAParser = require('ua-parser-js');
+
 // @desc    Track visitor page view
 // @route   POST /api/analytics/track
 // @access  Public
 exports.trackVisit = asyncHandler(async (req, res) => {
-    const { visitorId, page, deviceType } = req.body;
+    const { visitorId, page } = req.body;
     const userAgent = req.headers['user-agent'];
+    const uaParser = new UAParser(userAgent);
+    const result = uaParser.getResult();
 
     // Get IP (handles proxies like Nginx/Cloudflare)
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    // Localhost IP often returns ::1, so we handle that case
+    let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip;
+    if (ip && ip.includes(',')) ip = ip.split(',')[0].trim();
+
+    // Get Location
+    const geo = geoip.lookup(ip);
+    const country = geo ? geo.country : 'Unknown';
+    const city = geo ? geo.city : 'Unknown';
 
     const log = await Analytics.create({
         visitorId,
-        user: req.user ? req.user.id : null, // If user is logged in (middleware might attach it)
+        user: req.user ? req.user.id : null,
         page,
         ip,
         userAgent,
-        deviceType
+        deviceType: result.device.type || 'desktop', // ua-parser often returns undefined for desktop
+        browser: `${result.browser.name || 'Unknown'} ${result.browser.version || ''}`.trim(),
+        os: `${result.os.name || 'Unknown'} ${result.os.version || ''}`.trim(),
+        country,
+        city
     });
+
+    // Populate user info before emitting
+    const populatedLog = await log.populate('user', 'name email');
+
+    // Emit live event
+    const io = req.app.get('io');
+    if (io) {
+        io.emit('new-visit', populatedLog);
+    }
 
     res.status(201).json({ success: true });
 });

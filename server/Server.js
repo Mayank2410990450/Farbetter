@@ -166,6 +166,29 @@ const startServer = async () => {
       console.log(`Server running on port ${port}`)
     );
 
+    // Initialize Socket.io
+    const io = require('socket.io')(server, {
+      cors: {
+        origin: [
+          'https://www.farbetterstore.com',
+          'http://localhost:5173',
+          'http://localhost:5000'
+        ],
+        methods: ["GET", "POST"]
+      },
+      transports: ['websocket', 'polling']
+    });
+
+    // Make io accessible to our router
+    app.set('io', io);
+
+    io.on('connection', (socket) => {
+      // console.log('New client connected', socket.id);
+      socket.on('disconnect', () => {
+        // console.log('Client disconnected');
+      });
+    });
+
     // Increase API timeout to 5 minutes
     server.setTimeout(300000);
 

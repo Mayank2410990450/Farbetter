@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import io from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import {
   fetchProducts,
@@ -50,9 +59,12 @@ import {
   deleteCategory,
   fetchOrders,
   updateOrderStatus,
-  fetchLogs,
+  fetchLogs as fetchPaymentLogs,
   updatePaymentLogStatus,
 } from "@/api/admin";
+import {
+  getAnalyticsLogs,
+} from "@/api/analytics";
 import {
   fetchAllOffers,
   createOffer,
@@ -74,7 +86,8 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [logs, setLogs] = useState([]);
+  const [paymentLogs, setPaymentLogs] = useState([]); // Renamed for clarity
+  const [visitorLogs, setVisitorLogs] = useState([]); // New state for visitor tracking
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -87,6 +100,8 @@ export default function AdminDashboard() {
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [isOfferDialogOpen, setIsOfferDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+
+  // Form states ... (rest of file)
 
   // Form states
   const [productForm, setProductForm] = useState({
@@ -134,6 +149,32 @@ export default function AdminDashboard() {
       return;
     }
     loadData();
+
+    // Socket.io connection for live updates
+    const socket = io(import.meta.env.VITE_SERVER_URL || 'http://localhost:5000');
+
+    socket.on('connect', () => {
+      console.log('Connected to socket server');
+    });
+
+    socket.on('new-visit', (newLog) => {
+      setVisitorLogs(prevLogs => [newLog, ...prevLogs]);
+
+      // Build notification message with name and location
+      const visitorName = newLog.user?.name || 'Guest visitor';
+      const location = `${newLog.city || 'Unknown City'}, ${newLog.country || 'Unknown Country'}`;
+
+      toast({
+        title: `🌍 ${visitorName}`,
+        description: `📍 ${location}\n💻 ${newLog.browser || 'Unknown Browser'}`,
+        variant: "default",
+        duration: 4000
+      });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, [user, navigate]);
 
   const loadData = async () => {
@@ -144,14 +185,16 @@ export default function AdminDashboard() {
         productsData,
         categoriesData,
         ordersData,
-        logsData,
+        paymentLogsData,
+        visitorLogsRes,
         offersData,
         testimonialsData,
       ] = await Promise.all([
         fetchProducts(),
         fetchCategories(),
         fetchOrders(),
-        fetchLogs(),
+        fetchPaymentLogs(),
+        getAnalyticsLogs(),
         fetchAllOffers(),
         fetchTestimonials(),
       ]);
@@ -164,8 +207,8 @@ export default function AdminDashboard() {
         : [];
 
       // Sort logs by timestamp (newest first)
-      const sortedLogs = Array.isArray(logsData)
-        ? [...logsData].sort(
+      const sortedPaymentLogs = Array.isArray(paymentLogsData)
+        ? [...paymentLogsData].sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         )
         : [];
@@ -173,7 +216,8 @@ export default function AdminDashboard() {
       setProducts(Array.isArray(productsData) ? productsData : []);
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
       setOrders(sortedOrders);
-      setLogs(sortedLogs);
+      setPaymentLogs(sortedPaymentLogs);
+      setVisitorLogs(visitorLogsRes.logs || []);
       setOffers(Array.isArray(offersData) ? offersData : []);
       setTestimonials(testimonialsData?.testimonials || []);
     } catch (error) {
@@ -548,7 +592,8 @@ export default function AdminDashboard() {
               { id: "offers", label: "Offers", icon: Gift },
               { id: "orders", label: "Orders", icon: ShoppingCart },
               { id: "coupons", label: "Coupons", icon: Tag },
-              { id: "logs", label: "Logs", icon: FileText },
+              { id: "payments", label: "Payments", icon: FileText },
+              { id: "logs", label: "Visitors", icon: FileText },
               { id: "testimonials", label: "Reviews", icon: FileText }, // Using FileText temporarily as MessageSquare import might need check
               { id: "settings", label: "Settings", icon: Settings },
             ].map((tab) => {
@@ -625,6 +670,23 @@ export default function AdminDashboard() {
                   </p>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base sm:text-lg font-medium flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-orange-500" />
+                    Total Visitors
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl sm:text-4xl font-bold">
+                    {visitorLogs.length}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Recorded visits
+                  </p>
+                </CardContent>
+              </Card>
             </div>
 
             <Card>
@@ -645,7 +707,7 @@ export default function AdminDashboard() {
                 </Button>
                 <Button variant="outline" onClick={() => setActiveTab("logs")}>
                   <FileText className="w-4 h-4 mr-2" />
-                  View Logs
+                  View Visitors
                 </Button>
               </CardContent>
             </Card>
@@ -1247,8 +1309,8 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Logs Tab */}
-        {activeTab === "logs" && (
+        {/* Payment Logs Tab */}
+        {activeTab === "payments" && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold">Payment & Activity Logs</h2>
             <Card>
@@ -1258,12 +1320,12 @@ export default function AdminDashboard() {
                   below.
                 </p>
                 <div className="mt-6 space-y-3">
-                  {logs.length === 0 ? (
+                  {paymentLogs.length === 0 ? (
                     <p className="text-center text-sm text-muted-foreground">
                       No logs yet
                     </p>
                   ) : (
-                    logs.map((log, idx) => {
+                    paymentLogs.map((log, idx) => {
                       // normalize shape: payment log vs fallback order-log
                       const logId = log._id;
                       const orderId = log.order?._id || log._id;
@@ -1363,8 +1425,8 @@ export default function AdminDashboard() {
                                         description: `Payment status updated to ${newStatus}`,
                                       });
                                       // Refresh logs
-                                      const updatedLogs = await fetchLogs();
-                                      setLogs(updatedLogs);
+                                      const updatedLogs = await fetchPaymentLogs();
+                                      setPaymentLogs(updatedLogs);
                                     } catch (err) {
                                       toast({
                                         title: "Error",
@@ -1723,6 +1785,112 @@ export default function AdminDashboard() {
                 ))
               )}
             </div>
+          </div>
+        )}
+
+        {/* Logs Tab */}
+        {activeTab === "logs" && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold">Visitor Traffic Logs</h2>
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Visit #</TableHead>
+                      <TableHead>Time</TableHead>
+                      <TableHead>Visitor Info</TableHead>
+                      <TableHead>Last Page Visited</TableHead>
+                      <TableHead>System</TableHead>
+                      <TableHead>Location</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {visitorLogs.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          No traffic logs found yet.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      (() => {
+                        // Count visits per visitorId
+                        const visitorCounts = {};
+                        visitorLogs.forEach(log => {
+                          const id = log.user?._id || log.visitorId;
+                          visitorCounts[id] = (visitorCounts[id] || 0) + 1;
+                        });
+
+                        // Track running count as we render
+                        const runningCount = {};
+
+                        return visitorLogs.map((log, index) => {
+                          const visitorKey = log.user?._id || log.visitorId;
+                          runningCount[visitorKey] = (runningCount[visitorKey] || 0) + 1;
+                          const visitNumber = runningCount[visitorKey];
+                          const totalVisits = visitorCounts[visitorKey];
+
+                          return (
+                            <TableRow key={log._id}>
+                              <TableCell className="whitespace-nowrap">
+                                <div className="flex flex-col">
+                                  <span className="font-bold text-primary">#{visitNumber}</span>
+                                  <span className="text-[10px] text-muted-foreground">of {totalVisits}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                {new Date(log.timestamp).toLocaleString()}
+                              </TableCell>
+                              <TableCell>
+                                {log.user ? (
+                                  <div className="flex flex-col">
+                                    <span className="font-semibold text-primary">{log.user.name}</span>
+                                    <span className="text-xs text-muted-foreground">{log.user.email}</span>
+                                    <Badge variant="secondary" className="mt-1 w-fit text-[10px] px-1 h-5">Registered</Badge>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">Guest</span>
+                                    <span className="text-xs text-muted-foreground font-mono" title={log.visitorId}>
+                                      ID: {log.visitorId.substring(0, 8)}...
+                                    </span>
+                                  </div>
+                                )}
+                              </TableCell>
+                              <TableCell className="max-w-[150px] break-words" title={log.page}>
+                                <span className="text-sm">{(log.page || '').replace('http://localhost:5173', '')}</span>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-col gap-1 text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className="capitalize text-[10px]">
+                                      {log.deviceType || 'unknown'}
+                                    </Badge>
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">
+                                    {log.browser || 'Unknown Browser'}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {log.os || 'Unknown OS'}
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-col text-sm">
+                                  <span className="font-medium">{log.city || 'Unknown City'}</span>
+                                  <span className="text-xs text-muted-foreground">{log.country || 'Unknown Country'}</span>
+                                  <span className="text-xs font-mono text-gray-400 mt-1">{log.ip || '—'}</span>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        });
+                      })()
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </div>
         )}
 
