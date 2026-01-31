@@ -1,5 +1,5 @@
 const express = require("express");
-const { signin, login, logout, getUserProfile, updateUserProfile } = require("../controller/user.controller");
+const { signin, login, logout, getUserProfile, updateUserProfile, forgotPassword, resetPassword } = require("../controller/user.controller");
 const authMiddleware = require("../middlewares/auth.middleware");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
@@ -9,6 +9,8 @@ const router = express.Router();
 // PUBLIC ROUTES
 router.post("/register", signin);
 router.post("/login", login);
+router.post("/password/forgot", forgotPassword);
+router.put("/password/reset/:token", resetPassword);
 
 // OAuth Routes (only if credentials are configured)
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {

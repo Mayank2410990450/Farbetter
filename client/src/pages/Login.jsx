@@ -71,7 +71,6 @@ export default function Login() {
   }, [searchParams, toast]);
 
   // Redirect if already logged in (including after OAuth login)
-  // Redirect if already logged in (including after OAuth login)
   useEffect(() => {
     if (user && user.role === 'user') {
       navigate('/user/dashboard');
@@ -143,7 +142,11 @@ export default function Login() {
         <Card className="shadow-lg">
           <CardHeader className="space-y-1 px-4 sm:px-6 py-4 sm:py-6">
             <div className="flex justify-center mb-4">
-              <div className="font-serif text-2xl sm:text-3xl font-bold text-primary">Farbetter</div>
+              <img
+                src="/logo.png"
+                alt="Farbetter"
+                className="h-20 w-auto object-contain"
+              />
             </div>
             <CardTitle className="text-xl sm:text-2xl text-center">User Login</CardTitle>
             <CardDescription className="text-center text-xs sm:text-sm">
@@ -165,7 +168,16 @@ export default function Login() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-sm">Password</Label>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/forgot-password')}
+                    className="text-xs text-primary hover:underline font-medium"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
                 <Input
                   id="password"
                   type="password"

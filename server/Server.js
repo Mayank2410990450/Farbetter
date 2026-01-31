@@ -62,7 +62,7 @@ app.use(cors({
     }
   },
   credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "Idempotency-Key"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   exposedHeaders: ["set-cookie"]
 }));
@@ -93,6 +93,7 @@ app.use("/api/shipping", shippingRoutes);
 app.use("/api/debug", debugRoutes);
 app.use("/api/testimonials", require("./routes/testimonial.route"));
 app.use("/api/coupons", couponRoutes);
+app.use("/api/analytics", require("./routes/analytics.route"));
 
 
 // Test route
@@ -110,11 +111,15 @@ app.use((err, req, res, next) => {
 });
 
 // ===== DATABASE CONNECTION =====
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(async () => {
+const connectDB = require("./config/db");
 
-    // Seed single admin user if configured and none exists
+// ===== DATABASE CONNECTION & SERVER STARTUP =====
+const startServer = async () => {
+  try {
+    // 1. Connect to Database
+    await connectDB();
+
+    // 2. Seed Data (if needed)
     try {
       const Admin = require('./models/User.modal');
       const Offer = require('./models/offer.modal');
@@ -132,10 +137,10 @@ mongoose
             password: hashed,
             role: 'admin'
           });
+          console.log('✅ Admin account seeded');
         }
       }
 
-      // Seed default offers if none exist
       const existingOffers = await Offer.countDocuments();
       if (existingOffers === 0) {
         const defaultOffers = [
@@ -149,16 +154,25 @@ mongoose
           },
         ];
         await Offer.insertMany(defaultOffers);
+        console.log('✅ Default offers seeded');
       }
     } catch (seedErr) {
-      console.error('Seeding error:', seedErr.message);
+      console.error('⚠️ Seeding error:', seedErr.message);
     }
 
+    // 3. Start Server
     const port = process.env.PORT || 5000;
-    app.listen(port, () =>
+    const server = app.listen(port, () =>
       console.log(`Server running on port ${port}`)
     );
-  })
-  .catch((err) => {
-    console.error("MongoDB Error:", err.message);
-  });
+
+    // Increase API timeout to 5 minutes
+    server.setTimeout(300000);
+
+  } catch (err) {
+    console.error("❌ Failed to start server:", err.message);
+    process.exit(1);
+  }
+};
+
+startServer();

@@ -70,6 +70,14 @@ const orderSchema = new Schema(
       type: Number,
       default: 0,
       min: 0
+    },
+
+    // Idempotency: prevent duplicates
+    idempotencyKey: {
+      type: String,
+      unique: true,
+      sparse: true, // Allows null/undefined values for old orders
+      index: true
     }
   },
   { timestamps: true }

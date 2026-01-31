@@ -34,3 +34,13 @@ export const logoutUser = async () => {
   localStorage.removeItem("token");
   return res.data;
 };
+
+export const forgotPassword = async (email) => {
+  const res = await api.post("/user/password/forgot", { email });
+  return res.data;
+};
+
+export const resetPassword = async (token, password) => {
+  const res = await api.put(`/user/password/reset/${token}`, { password });
+  return res.data;
+};

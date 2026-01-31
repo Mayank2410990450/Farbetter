@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,8 +9,37 @@ import { WishlistProvider } from "@/context/WishlistContext";
 import { OrdersProvider } from "@/context/OrdersContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { trackVisit } from "@/api/analytics";
+
+// Analytics Tracker Component
+const AnalyticsTracker = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    try {
+      // Get or create unique visitor ID
+      let visitorId = localStorage.getItem("visitorId");
+      if (!visitorId) {
+        visitorId = crypto.randomUUID();
+        localStorage.setItem("visitorId", visitorId);
+      }
+
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+      trackVisit({
+        visitorId,
+        page: location.pathname + location.search,
+        deviceType: isMobile ? 'mobile' : 'desktop'
+      });
+    } catch (err) {
+      console.error("Analytics Error:", err);
+    }
+  }, [location]);
+
+  return null;
+};
 
 // Lazy load pages
 const Home = lazy(() => import("@/pages/Home"));
@@ -30,11 +59,14 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 const AdminLogin = lazy(() => import("@/pages/admin/Login"));
 const Login = lazy(() => import("@/pages/Login"));
 const Register = lazy(() => import("@/pages/Register"));
+const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const UserDashboard = lazy(() => import("@/pages/UserDashboard"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const AdminProducts = lazy(() => import("@/pages/admin/Products"));
 const AdminCategories = lazy(() => import("@/pages/admin/Categories"));
 const AdminLogs = lazy(() => import("@/pages/admin/Logs"));
+const AdminAnalytics = lazy(() => import("@/pages/admin/Analytics"));
 const ProductNew = lazy(() => import("@/pages/admin/ProductNew"));
 const AdminSettings = lazy(() => import("@/pages/admin/Settings"));
 
@@ -48,6 +80,7 @@ const PageLoader = () => (
 function Router() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <AnalyticsTracker />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -67,6 +100,8 @@ function Router() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/user/dashboard" element={<ProtectedRoute role="user"><UserDashboard /></ProtectedRoute>} />
           <Route path="/admin/dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
@@ -75,6 +110,7 @@ function Router() {
           <Route path="/admin/products/:id/edit" element={<ProtectedRoute role="admin"><ProductNew /></ProtectedRoute>} />
           <Route path="/admin/categories" element={<ProtectedRoute role="admin"><AdminCategories /></ProtectedRoute>} />
           <Route path="/admin/logs" element={<ProtectedRoute role="admin"><AdminLogs /></ProtectedRoute>} />
+          <Route path="/admin/analytics" element={<ProtectedRoute role="admin"><AdminAnalytics /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute role="admin"><AdminSettings /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>

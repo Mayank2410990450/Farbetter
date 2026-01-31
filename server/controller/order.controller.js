@@ -13,6 +13,17 @@ const { sendOrderConfirmationEmail, sendOrderStatusEmail } = require("../service
 // 1️⃣ Place Order
 exports.placeOrder = asyncHandler(async (req, res) => {
   console.log('[DEBUG] placeOrder called');
+  const idempotencyKey = req.headers['idempotency-key'];
+
+  if (idempotencyKey) {
+    // Check if an order with this idempotency key already exists
+    const existingOrder = await Order.findOne({ idempotencyKey });
+    if (existingOrder) {
+      console.log(`[DEBUG] Idempotency hit: ${idempotencyKey}`);
+      return res.status(200).json({ success: true, order: existingOrder, message: "Order already processed" });
+    }
+  }
+
   try {
     const userId = req.user.id;
     const { selectedAddressId, paymentMethod, paymentId, shippingCost } = req.body;
@@ -71,7 +82,8 @@ exports.placeOrder = asyncHandler(async (req, res) => {
       paymentMethod,
       totalAmount: totalAmount + shippingCostNumber,
       shippingCost: shippingCostNumber,
-      paymentStatus: paymentMethod === "COD" ? "pending" : "paid"
+      paymentStatus: paymentMethod === "COD" ? "pending" : "paid",
+      idempotencyKey // Save the key to prevent future duplicates
     };
 
     console.log('[DEBUG] Creating order with payload:', JSON.stringify(orderPayload, null, 2));
@@ -101,20 +113,35 @@ exports.placeOrder = asyncHandler(async (req, res) => {
       console.error('Failed to create payment log (non-blocking):', logErr.message);
     }
 
-    // Send order confirmation email
-    try {
-      const user = await User.findById(userId);
-      if (user) {
-        // Populate order with product details for email
-        // Populate order with product details for email
-        const populatedOrder = await Order.findById(order._id).populate("items.product");
-        sendOrderConfirmationEmail(user, populatedOrder).catch(err => console.error("Email sending error (background):", err.message));
-      }
-    } catch (emailError) {
-      console.error("Email sending error (non-blocking):", emailError.message);
-    }
-
+    // ⚡ FAST RESPONSE: Send success immediately
     res.status(201).json({ success: true, order });
+
+    // 🕒 BACKGROUND TASKS: Emails, Invoice, Notifications
+    // Executed asynchronously to ensure fast API response
+    (async () => {
+      try {
+        console.log('[BACKGROUND] Starting post-order tasks...');
+        const user = await User.findById(userId);
+
+        if (user) {
+          // 1. Fetch populated order for email/invoice
+          const populatedOrder = await Order.findById(order._id).populate("items.product");
+
+          // 2. Send Email
+          await sendOrderConfirmationEmail(user, populatedOrder);
+
+          // 3. Generate Invoice (Placeholder)
+          // await generateInvoice(populatedOrder); 
+
+          // 4. Send Notifications (Placeholder)
+          // await sendNotification(user, "Order Placed successfully");
+
+          console.log('[BACKGROUND] Order processing tasks completed.');
+        }
+      } catch (bgError) {
+        console.error("[BACKGROUND] Error in post-order tasks:", bgError.message);
+      }
+    })();
   } catch (error) {
     console.error('[DEBUG] placeOrder Error:', error);
     res.status(500).json({ success: false, message: error.message, stack: error.stack });
@@ -206,19 +233,24 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
     console.error('Failed to update payment logs after order status change:', logErr.message);
   }
 
-  // Send status update email
-  if (orderStatus && previousOrderStatus !== orderStatus) {
-    try {
-      const user = await User.findById(order.user);
-      if (user) {
-        sendOrderStatusEmail(user.email, order, orderStatus).catch(err => console.error("Status email error (background):", err.message));
-      }
-    } catch (emailErr) {
-      console.error("Status email error:", emailErr.message);
-    }
-  }
-
+  // ⚡ FAST RESPONSE
   res.json({ success: true, order });
+
+  // 🕒 BACKGROUND TASKS
+  if (orderStatus && previousOrderStatus !== orderStatus) {
+    (async () => {
+      try {
+        console.log('[BACKGROUND] Sending status update email...');
+        const user = await User.findById(order.user);
+        if (user) {
+          await sendOrderStatusEmail(user.email, order, orderStatus);
+          console.log('[BACKGROUND] Status email sent.');
+        }
+      } catch (bgError) {
+        console.error("[BACKGROUND] Status email error:", bgError.message);
+      }
+    })();
+  }
 });
 
 // Admin: fetch payment logs

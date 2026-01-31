@@ -15,6 +15,16 @@ import { getOptimizedImageUrl } from "@/lib/utils";
 import { validateCoupon } from "@/api/coupon";
 import { Input } from "@/components/ui/input";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 export default function Checkout() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -28,6 +38,10 @@ export default function Checkout() {
   const [shippingSettings, setShippingSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+
+  // Error Dialog State
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Coupon states
   const [couponCode, setCouponCode] = useState("");
@@ -65,11 +79,8 @@ export default function Checkout() {
         }
       } catch (err) {
         console.error("Error loading checkout data:", err);
-        toast({
-          title: "Error",
-          description: "Failed to load checkout data",
-          variant: "destructive",
-        });
+        setErrorMessage("Failed to load checkout data. Please try refreshing the page.");
+        setErrorDialogOpen(true);
       } finally {
         setLoading(false);
       }
@@ -109,7 +120,6 @@ export default function Checkout() {
     );
   }
 
-  // Calculate total
   // Calculate total
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
@@ -157,6 +167,9 @@ export default function Checkout() {
   const selectedAddress = addresses.find((a) => a._id === selectedAddressId);
 
   const handlePlaceOrder = async () => {
+    // Prevent double clicks
+    if (processing) return;
+
     if (!selectedAddressId) {
       toast({
         title: "Error",
@@ -176,11 +189,8 @@ export default function Checkout() {
     }
 
     if (paymentMethod === "Razorpay" && total < 1) {
-      toast({
-        title: "Minimum Order Amount",
-        description: "Online payments require a minimum order value of ₹1.00. Please add more items or choose COD.",
-        variant: "destructive",
-      });
+      setErrorMessage("Online payments require a minimum order value of ₹1.00. Please add more items or choose COD.");
+      setErrorDialogOpen(true);
       return;
     }
 
@@ -244,9 +254,8 @@ export default function Checkout() {
                 navigate(`/order-confirmation/${verify.orderId}`);
               } catch (err) {
                 console.error('Payment verification error:', err);
-                // Even if frontend verification fails now, the Webhook should eventually fix it
-                // But we show error to user
-                toast({ title: 'Order Verification Error', description: 'Please check your orders page.', variant: 'destructive' });
+                setErrorMessage('Order verification failed. Please check your orders page to confirm status.');
+                setErrorDialogOpen(true);
               }
             },
             prefill: {
@@ -261,7 +270,8 @@ export default function Checkout() {
           return;
         } catch (err) {
           console.error('Payment initialization error:', err);
-          toast({ title: 'Error', description: err?.message || 'Razorpay failed', variant: 'destructive' });
+          setErrorMessage(err?.message || 'Failed to initialize payment gateway.');
+          setErrorDialogOpen(true);
           return;
         }
       }
@@ -287,12 +297,10 @@ export default function Checkout() {
     } catch (err) {
       console.error("Error placing order:", err);
       const errorMsg =
-        err?.response?.data?.message || "Failed to place order";
-      toast({
-        title: "Error",
-        description: errorMsg,
-        variant: "destructive",
-      });
+        err?.response?.data?.message || "Failed to place order. Please try again.";
+
+      setErrorMessage(errorMsg);
+      setErrorDialogOpen(true);
     } finally {
       setProcessing(false);
     }
@@ -548,6 +556,21 @@ export default function Checkout() {
           </Card>
         </div>
       </div>
+
+      {/* Error Dialog for Critical Failures */}
+      <AlertDialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">Order Error</AlertDialogTitle>
+            <AlertDialogDescription>
+              {errorMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setErrorDialogOpen(false)}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
