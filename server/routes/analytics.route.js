@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { trackVisit, getAnalytics, getStats } = require('../controller/analytics.controller');
-const { protect, admin } = require('../middlewares/authMiddleware');
+const { protect, admin } = require('../middlewares/auth.middleware');
 
 // Public route to track visits
 // Note: We might want 'protect' optional middleware to capture user Id if token exists
