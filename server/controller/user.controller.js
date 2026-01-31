@@ -17,8 +17,8 @@ exports.signin = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    // Hash password
-    const hashed = await bcrypt.hash(password, 10);
+    // Hash password (8 rounds for speed while maintaining security)
+    const hashed = await bcrypt.hash(password, 8);
 
     // Create user
     const newUser = await User.create({

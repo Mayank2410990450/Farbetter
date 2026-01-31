@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { getOptimizedImageUrl } from "@/lib/utils";
 
 export default function CompactProductCard({ product, isWishlisted, onToggleWishlist }) {
     const navigate = useNavigate();
@@ -19,7 +18,6 @@ export default function CompactProductCard({ product, isWishlisted, onToggleWish
     const displayName = product?.name ?? product?.title ?? "Product";
     // const displayProtein = product?.protein ?? 0;
     const displayImage = product?.image ?? product?.images?.[0] ?? "";
-    const optimizedImage = getOptimizedImageUrl(displayImage, 300); // Smaller image request
 
     const sizes = product?.sizes ?? (product ? [{ label: "Default", price: product.price ?? 0 }] : []);
     const price = (sizes[0]?.price || product?.price || 0);
@@ -56,10 +54,10 @@ export default function CompactProductCard({ product, isWishlisted, onToggleWish
             {/* Image Container */}
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-white dark:bg-zinc-900/50">
                 <img
-                    src={optimizedImage}
+                    src={displayImage}
                     alt={displayName}
                     loading="lazy"
-                    className="h-full w-full object-contain p-4 mix-blend-multiply dark:mix-blend-normal transition-transform duration-300 group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 {(product?.stock === 0 || product?.soldOut) && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-[1px]">

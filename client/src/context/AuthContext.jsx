@@ -165,47 +165,57 @@ export const AuthProvider = ({ children }) => {
       setAuthLoading(true);
       setError(null);
 
+      // Step 1: Register user (fast)
       await registerUser({ name, email, password });
 
-      // After registration, merge guest cart into server cart if any (dedupe)
-      try {
-        const raw = localStorage.getItem("guest_cart");
-        const guest = raw ? JSON.parse(raw) : [];
-        if (guest && guest.length) {
-          const agg = guest.reduce((acc, it) => {
-            const id = it.productId;
-            const qty = Number(it.quantity || 1);
-            acc[id] = (acc[id] || 0) + qty;
-            return acc;
-          }, {});
-
-          await Promise.all(
-            Object.entries(agg).map(([productId, quantity]) =>
-              addToCart(productId, quantity)
-            )
-          );
-
-          localStorage.removeItem("guest_cart");
-        }
-      } catch (e) {
-        console.warn("Guest cart merge failed after register:", e);
-      }
-      // Merge guest wishlist after register
-      try {
-        const rawWishlist = localStorage.getItem("guest_wishlist");
-        const wishlistIds = rawWishlist ? JSON.parse(rawWishlist) : [];
-        if (wishlistIds && wishlistIds.length) {
-          const unique = Array.from(new Set(wishlistIds));
-          await Promise.all(unique.map((pid) => addToWishlist(pid).catch(() => null)));
-          localStorage.removeItem("guest_wishlist");
-          toast({ title: "Wishlist merged", description: "Your saved wishlist items were merged into your account.", variant: "success" });
-        }
-      } catch (e) {
-        console.warn("Guest wishlist merge failed after register:", e);
-      }
-
+      // Step 2: Get profile immediately (fast)
       const profile = await getProfile();
       setUser(profile);
+
+      // Step 3: Merge guest data in background (non-blocking)
+      // Don't await this - let it run in background
+      setTimeout(async () => {
+        try {
+          // Check for guest cart
+          const raw = localStorage.getItem("guest_cart");
+          const guest = raw ? JSON.parse(raw) : [];
+
+          if (guest && guest.length) {
+            const agg = guest.reduce((acc, it) => {
+              const id = it.productId;
+              const qty = Number(it.quantity || 1);
+              acc[id] = (acc[id] || 0) + qty;
+              return acc;
+            }, {});
+
+            await Promise.all(
+              Object.entries(agg).map(([productId, quantity]) =>
+                addToCart(productId, quantity).catch(err => console.warn('Cart merge failed for product:', productId, err))
+              )
+            );
+
+            localStorage.removeItem("guest_cart");
+            toast({ title: "Cart merged", description: "Your cart items have been saved.", variant: "success", duration: 2000 });
+          }
+        } catch (e) {
+          console.warn("Guest cart merge failed after register:", e);
+        }
+
+        // Merge wishlist
+        try {
+          const rawWishlist = localStorage.getItem("guest_wishlist");
+          const wishlistIds = rawWishlist ? JSON.parse(rawWishlist) : [];
+
+          if (wishlistIds && wishlistIds.length) {
+            const unique = Array.from(new Set(wishlistIds));
+            await Promise.all(unique.map((pid) => addToWishlist(pid).catch(() => null)));
+            localStorage.removeItem("guest_wishlist");
+            toast({ title: "Wishlist merged", description: "Your wishlist items have been saved.", variant: "success", duration: 2000 });
+          }
+        } catch (e) {
+          console.warn("Guest wishlist merge failed after register:", e);
+        }
+      }, 100); // Run after 100ms delay (non-blocking)
 
       return { success: true };
     } catch (err) {

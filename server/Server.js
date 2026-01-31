@@ -76,22 +76,29 @@ app.use(cookieParser());
 // Initialize Passport
 app.use(passport.initialize());
 
+// ===== CACHING MIDDLEWARE =====
+const { apiCache, setCacheHeaders } = require("./middlewares/cache.middleware");
+
 // ===== ROUTES =====
 app.use("/api/user", userRoutes);
 app.use("/api/auth", userRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/categories", cateoryRoutes);
+
+// Cached routes (public data)
+app.use("/api/products", apiCache(300), productRoutes);  // 5 min cache
+app.use("/api/categories", apiCache(3600), cateoryRoutes);  // 1 hour cache
+app.use("/api/offers", apiCache(600), offerRoutes);  // 10 min cache
+app.use("/api/testimonials", apiCache(3600), require("./routes/testimonial.route"));  // 1 hour cache
+
+// Non-cached routes (user-specific or sensitive)
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/addresses", addressroutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/payments", paymentRoutes);
-app.use("/api/offers", offerRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/shipping", shippingRoutes);
 app.use("/api/debug", debugRoutes);
-app.use("/api/testimonials", require("./routes/testimonial.route"));
 app.use("/api/coupons", couponRoutes);
 app.use("/api/analytics", require("./routes/analytics.route"));
 

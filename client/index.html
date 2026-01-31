@@ -33,12 +33,18 @@
   <meta property="og:image" content="https://farbetterstore.com/logo.png" />
   <meta property="og:type" content="website" />
 
-  <!-- Fonts -->
+  <!-- Fonts (Optimized Loading) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Defer font loading to not block render -->
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Sora:wght@600;700;800&display=swap"
-    rel="stylesheet" />
+    rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Sora:wght@600;700;800&display=swap"
+      rel="stylesheet" />
+  </noscript>
 </head>
 
 <body>

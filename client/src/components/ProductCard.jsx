@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useWishlist } from "@/context/WishlistContext";
 import QuickViewModal from "@/components/QuickViewModal";
 import { getStockStatus } from "@/lib/stockUtils";
-import { getOptimizedImageUrl } from "@/lib/utils";
 
 export default function ProductCard({
   product,
@@ -32,7 +31,6 @@ export default function ProductCard({
   const displayTagline = product?.tagline ?? product?.category?.name ?? "";
   const displayProtein = product?.protein ?? 0;
   const displayImage = product?.image ?? product?.images?.[0] ?? "";
-  const optimizedImage = getOptimizedImageUrl(displayImage, 500);
 
   // Rating and review stats from backend
   const averageRating = product?.averageRating ?? 0;
@@ -133,10 +131,10 @@ export default function ProductCard({
       <div className="relative overflow-hidden bg-white cursor-pointer group" onClick={() => navigate(`/product/${pid}`)}>
         <div className="w-full aspect-[3/4] relative overflow-hidden bg-white dark:bg-card rounded-none">
           <img
-            src={optimizedImage}
+            src={displayImage}
             alt={displayName}
             loading="lazy"
-            className="w-full h-full object-contain p-4 mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             data-testid={`img-product-${pid}`}
           />
         </div>

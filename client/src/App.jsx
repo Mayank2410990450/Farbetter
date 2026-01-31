@@ -13,28 +13,39 @@ import { Suspense, lazy, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { trackVisit } from "@/api/analytics";
 
-// Analytics Tracker Component
+// Analytics Tracker Component (Deferred for Performance)
 const AnalyticsTracker = () => {
   const location = useLocation();
 
   useEffect(() => {
-    try {
-      // Get or create unique visitor ID
-      let visitorId = localStorage.getItem("visitorId");
-      if (!visitorId) {
-        visitorId = crypto.randomUUID();
-        localStorage.setItem("visitorId", visitorId);
+    // Defer analytics to avoid blocking critical rendering
+    const trackPageView = () => {
+      try {
+        // Get or create unique visitor ID
+        let visitorId = localStorage.getItem("visitorId");
+        if (!visitorId) {
+          visitorId = crypto.randomUUID();
+          localStorage.setItem("visitorId", visitorId);
+        }
+
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        trackVisit({
+          visitorId,
+          page: location.pathname + location.search,
+          deviceType: isMobile ? 'mobile' : 'desktop'
+        });
+      } catch (err) {
+        console.error("Analytics Error:", err);
       }
+    };
 
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-      trackVisit({
-        visitorId,
-        page: location.pathname + location.search,
-        deviceType: isMobile ? 'mobile' : 'desktop'
-      });
-    } catch (err) {
-      console.error("Analytics Error:", err);
+    // Use requestIdleCallback to defer analytics (run when browser is idle)
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(trackPageView, { timeout: 2000 });
+    } else {
+      // Fallback for browsers that don't support requestIdleCallback
+      setTimeout(trackPageView, 1000);
     }
   }, [location]);
 
@@ -46,6 +57,7 @@ const Home = lazy(() => import("@/pages/Home"));
 const Shop = lazy(() => import("@/pages/Shop"));
 const ProductDetails = lazy(() => import("@/pages/ProductDetails"));
 const Checkout = lazy(() => import("@/pages/Checkout"));
+const BuyNow = lazy(() => import("@/pages/BuyNow"));
 const OrderConfirmation = lazy(() => import("@/pages/OrderConfirmation"));
 const About = lazy(() => import("@/pages/About"));
 const Contact = lazy(() => import("@/pages/Contact"));
@@ -88,6 +100,7 @@ function Router() {
           <Route path="/shop/:category" element={<Shop />} />
           <Route path="/product/:productId" element={<ProductDetails />} />
           <Route path="/checkout" element={<ProtectedRoute role="user"><Checkout /></ProtectedRoute>} />
+          <Route path="/buy-now" element={<ProtectedRoute role="user"><BuyNow /></ProtectedRoute>} />
           <Route path="/order-confirmation/:orderId" element={<ProtectedRoute role="user"><OrderConfirmation /></ProtectedRoute>} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />

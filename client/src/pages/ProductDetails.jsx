@@ -149,8 +149,8 @@ export default function ProductDetails() {
   };
 
   const handleBuyNow = () => {
-    addToCart(productId, quantity);
-    navigate('/checkout');
+    // Navigate to Buy Now page with product details
+    navigate(`/buy-now?productId=${productId}&quantity=${quantity}`);
   };
 
   const handleToggleWishlist = () => {
