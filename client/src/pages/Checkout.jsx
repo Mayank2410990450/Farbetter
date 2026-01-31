@@ -280,7 +280,6 @@ export default function Checkout() {
       const orderRes = await placeOrder({
         selectedAddressId,
         paymentMethod,
-        paymentMethod,
         paymentId: null,
         shippingCost,
         couponCode: appliedCoupon?.code,
